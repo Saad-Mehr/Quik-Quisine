@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'HomePage.dart';
+
+
 
 void main() {
   runApp(MaterialApp(home:Myapp()));
@@ -18,6 +21,7 @@ class _MyappState extends State<Myapp> {
       body: Container(
         height: height,
         width: width,
+
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -67,7 +71,12 @@ class _MyappState extends State<Myapp> {
                     RaisedButton(
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -100,6 +109,8 @@ class _MyappState extends State<Myapp> {
     );
   }
 }
+
+
 
 
 class Second extends StatefulWidget {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'mysql.dart';
+
 void main() {
   runApp(MaterialApp(home:Myapp()));
 }
@@ -10,6 +12,23 @@ class Myapp extends StatefulWidget {
 }
 
 class _MyappState extends State<Myapp> {
+
+  var db = new Mysql();
+  var emailText = '';
+
+  void getUser() {
+    db.getConnection().then((conn) {
+      String sql = 'select first_name, last_name from heroku_19a4bd20cf30ab1.user where id = 1;';
+      conn.query(sql).then((results) {
+        for(var row in results) {
+          setState(() {
+            emailText = row[0];
+          });
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double width=MediaQuery.of(context).size.width;
@@ -67,8 +86,14 @@ class _MyappState extends State<Myapp> {
                     RaisedButton(
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
-                      onPressed: (){},
+                      onPressed: getUser,
                     ),
+                    Text(
+                      'user:',
+                    ),
+                    Text(
+                      '$emailText',
+                    )
                   ],
                 ),
               ),

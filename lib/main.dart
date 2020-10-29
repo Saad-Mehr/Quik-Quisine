@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'HomePage.dart';
 import 'mysql.dart';
-
+import 'user.dart';
+import 'dart:async';
 
 
 void main() {
@@ -14,6 +15,10 @@ class Myapp extends StatefulWidget {
 }
 
 class _MyappState extends State<Myapp> {
+  final TextEditingController _email_controller = TextEditingController();
+  final TextEditingController _password_controller = TextEditingController();
+  Future<User> _futureUser;
+  final succBar = SnackBar(content: Text('Yay Suc-cess!'));
   @override
   Widget build(BuildContext context) {
     double width=MediaQuery.of(context).size.width;
@@ -43,6 +48,7 @@ class _MyappState extends State<Myapp> {
               ),
               SizedBox(height: 30.0,),
               TextField(
+                controller: _email_controller,
                 decoration: InputDecoration(
                   hintText: 'Email',
                   suffixIcon: Icon(Icons.email),
@@ -53,6 +59,7 @@ class _MyappState extends State<Myapp> {
               ),
               SizedBox(height: 20.0,),
               TextField(
+                controller: _password_controller,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -73,10 +80,14 @@ class _MyappState extends State<Myapp> {
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
                       onPressed: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                        );
+                        setState(() {
+                          User user = signIn(_email_controller.text,_password_controller.text);
+                          if (user != null) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => HomePage()));
+                          }
+                        });
                       },
                     ),
                   ],
@@ -113,7 +124,6 @@ class _MyappState extends State<Myapp> {
 
 
 
-
 class Second extends StatefulWidget {
   @override
   _SecondState createState() => _SecondState();
@@ -136,6 +146,11 @@ class _SecondState extends State<Second> {
       });
     });
   }
+
+  final TextEditingController _email_controller = TextEditingController();
+  final TextEditingController _password_controller = TextEditingController();
+  Future<User> _futureUser;
+  final succBar = SnackBar(content: Text('Yay! A SnackBar!'));
 
   @override
   Widget build(BuildContext context) {
@@ -165,6 +180,7 @@ class _SecondState extends State<Second> {
               ),
               SizedBox(height: 30.0,),
               TextField(
+                controller: _email_controller,
                 decoration: InputDecoration(
                   hintText: 'Email',
                   suffixIcon: Icon(Icons.email),
@@ -175,6 +191,7 @@ class _SecondState extends State<Second> {
               ),
               SizedBox(height: 20.0,),
               TextField(
+                controller: _password_controller,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -194,7 +211,8 @@ class _SecondState extends State<Second> {
                     RaisedButton(
                       child: Text('Signup'),
                       color: Color(0xffEE7B23),
-                      onPressed: getUser,
+                      onPressed: () {
+                      },
                     ),
                     Text(
                       'user:',
@@ -229,7 +247,7 @@ class _SecondState extends State<Second> {
             ],
           ),
         ),
-      ),
+      )
     );
   }
 }

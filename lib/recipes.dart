@@ -33,7 +33,7 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
   );
 }
 
-class recipePage extends StatelessWidget {
+class RecipePage extends StatelessWidget {
   static const String _title = 'Recipes';
 
   @override

@@ -43,7 +43,7 @@ Widget _myListView(BuildContext context) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => recipePage()),
+            MaterialPageRoute(builder: (context) => RecipePage()),
           );
         },
       ),

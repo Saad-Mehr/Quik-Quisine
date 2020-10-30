@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'HomePage.dart';
+import 'search.dart';
+
+var resultSearchTerm;
+List<dynamic> resultNames;
+List<dynamic> resultDesc;
+
 Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions) {
   return showDialog(
     context: context,
@@ -26,7 +32,8 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
     },
   );
 }
-class recipePage extends StatelessWidget {
+
+class RecipePage extends StatelessWidget {
   static const String _title = 'Recipes';
 
   @override
@@ -46,6 +53,76 @@ class recipePage extends StatelessWidget {
     );
   }
 }
+
+class RecipeResultsPage extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    Future.delayed(Duration(milliseconds: 500));
+
+    resultNames = getRecipeNames;
+    resultDesc = getRecipeDesc;
+    resultSearchTerm = getSearchTerm;
+
+    String _title = 'Results for ' + getSearchTerm + ': ${resultNames.length}';
+
+    return MaterialApp(
+      title: _title,
+      home: Scaffold(
+        appBar: AppBar(title: Text(_title),
+            leading: IconButton(icon:Icon(Icons.arrow_back),
+              onPressed:() => Navigator.pop(context, false),
+            )
+        ),
+        body:
+        ResultsWidget(),
+
+      ),
+    );
+  }
+}
+
+List<Widget> getRecipeResults() {
+  List<Widget> recipes = List();
+
+  print(resultNames.length);
+
+  for (int i = 0; i < resultNames.length; i++) {
+    recipes.add(CustomListItemTwo(
+      thumbnail: Container(
+        child: Image.asset('assets/${resultNames[i]}.jpg', fit: BoxFit.fill,),
+      ),
+      title: resultNames[i],
+      subtitle: 'Ingredients: 16 ounces sliced pepperoncini undrained, 14 1/2 ounces diced tomatoes undrained, 1 medium onion chopped, 1/2 cup water, 2 packages Italian salad dressing mix, 1 teaspoon dried oregano, 1/2 teaspoon garlic powder, 1 beef rump roast or bottom round roast (3 to 4 pounds), 12 Italian rolls split',
+      instructions: '1. In a bowl, mix the first 7 ingredients. Halve roast; place in a 6-qt. electric pressure cooker. Pour pepperoncini mixture over top. Lock lid; close pressure-release valve. Adjust to pressure-cook on high for 60 minutes. Let pressure release naturally. A thermometer inserted into beef should read at least 145°. \n2. Remove roast; cool slightly. Skim fat from cooking juices. Shred beef with 2 forks. Return beef and cooking juices to pressure cooker; heat through. Serve on rolls.',
+    ));
+  }
+
+  if(resultNames.length == 0) {
+    recipes.add(Text(
+      'No results for $searchTerm.',
+    ));
+  }
+
+  return recipes;
+}
+
+class ResultsWidget extends StatelessWidget {
+  ResultsWidget({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print("recipes.dart has resultnames: ");
+    print(resultNames);
+    return ListView(
+      padding: const EdgeInsets.all(10.0),
+      children: getRecipeResults(),
+
+    );
+  }
+}
+
+
 
 class _ArticleDescription extends StatelessWidget {
   _ArticleDescription({

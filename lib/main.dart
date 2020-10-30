@@ -22,11 +22,12 @@ class _MyappState extends State<Myapp> {
       body: Container(
         height: height,
         width: width,
+        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
 
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               Container(
                 width: width,
                 height: height*0.45,
@@ -101,14 +102,13 @@ class _MyappState extends State<Myapp> {
                   ),
                 ),
               ),
-
-
             ],
           ),
         ),
       ),
     );
   }
+
 }
 
 
@@ -145,6 +145,8 @@ class _SecondState extends State<Second> {
       body: Container(
         height: height,
         width: width,
+        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -224,8 +226,6 @@ class _SecondState extends State<Second> {
                   ),
                 ),
               ),
-
-
             ],
           ),
         ),

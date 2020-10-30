@@ -60,11 +60,12 @@ class RecipeResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     Future.delayed(Duration(milliseconds: 500));
 
-    String _title = 'Results for ' + getSearchTerm;
-
     resultNames = getRecipeNames;
     resultDesc = getRecipeDesc;
     resultSearchTerm = getSearchTerm;
+
+    String _title = 'Results for ' + getSearchTerm + ': ${resultNames.length}';
+
     return MaterialApp(
       title: _title,
       home: Scaffold(
@@ -89,7 +90,7 @@ List<Widget> getRecipeResults() {
   for (int i = 0; i < resultNames.length; i++) {
     recipes.add(CustomListItemTwo(
       thumbnail: Container(
-        child: Image.asset('assets/$searchTerm.jpg', fit: BoxFit.fill,),
+        child: Image.asset('assets/${resultNames[i]}.jpg', fit: BoxFit.fill,),
       ),
       title: resultNames[i],
       subtitle: 'Ingredients: 16 ounces sliced pepperoncini undrained, 14 1/2 ounces diced tomatoes undrained, 1 medium onion chopped, 1/2 cup water, 2 packages Italian salad dressing mix, 1 teaspoon dried oregano, 1/2 teaspoon garlic powder, 1 beef rump roast or bottom round roast (3 to 4 pounds), 12 Italian rolls split',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quikquisine490/main.dart';
+import 'package:quikquisine490/search.dart';
 import 'recipes.dart';
 import 'package:flutter/material.dart';
 
@@ -43,6 +44,16 @@ Widget _myListView(BuildContext context) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => recipePage()),
+          );
+        },
+      ),
+      ListTile(
+        title: Text('Search'),
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => searchPage()),
           );
         },
       ),

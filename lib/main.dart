@@ -20,8 +20,8 @@ class _MyappState extends State<Myapp> {
   final TextEditingController _password_controller = TextEditingController();
   //Future<User> _futureUser;
   //final succBar = SnackBar(content: Text('Yay Suc-cess!'));
-  Future user;
-
+  //Future user;
+  bool loading = true;
 
   @override
   Widget build(BuildContext context) {
@@ -83,14 +83,8 @@ class _MyappState extends State<Myapp> {
                     RaisedButton(
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
-                      onPressed: (){
-                        setState(() {
-                          user = signIn(_email_controller.text, _password_controller.text);
-                          print(user);
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => HomePage()));
-                        });
+                      onPressed: () async {
+                        UserList = await signIn(_email_controller.text, _password_controller.text);
                       },
                     ),
                   ],

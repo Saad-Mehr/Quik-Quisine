@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+
+List UserList = [];
 class User {
   String email;
   //final String password;
@@ -35,7 +37,7 @@ Future<List> signIn(String email, String password) async{
     //List<String> tags = data != null ? List.from(data) : null;
     //var testuser = User(test);
     List user = [data['email'],data['username'],data['authentication_token'],data['id']];
-    //print(response.statusCode);
+    print(response.statusCode);
     return user;
   }
   else

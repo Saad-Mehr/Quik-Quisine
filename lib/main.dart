@@ -84,7 +84,11 @@ class _MyappState extends State<Myapp> {
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
                       onPressed: () async {
-                        UserList = await signIn(_email_controller.text, _password_controller.text);
+                        UserList = await LogIn(_email_controller.text, _password_controller.text);
+                        if (UserList != null)
+                          {
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+                          }
                       },
                     ),
                   ],

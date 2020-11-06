@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'HomePage.dart';
 import 'main.dart';
 import 'mysql.dart';
 import 'user.dart';
@@ -9,27 +10,12 @@ class Second extends StatefulWidget {
 }
 
 class _SecondState extends State<Second> {
-
-  var db = new Mysql();
-  var emailText = '';
-
-  void getUser() {
-    db.getConnection().then((conn) {
-      String sql = 'select first_name, last_name from heroku_19a4bd20cf30ab1.user where id = 1;';
-      conn.query(sql).then((results) {
-        for(var row in results) {
-          setState(() {
-            emailText = row[1];
-          });
-        }
-      });
-    });
-  }
-
+  final TextEditingController _first_name = TextEditingController();
+  final TextEditingController _last_name = TextEditingController();
+  final TextEditingController _username = TextEditingController();
+  final TextEditingController _password_confirm = TextEditingController();
   final TextEditingController _email_controller = TextEditingController();
   final TextEditingController _password_controller = TextEditingController();
-  Future<User> _futureUser;
-  final succBar = SnackBar(content: Text('Yay! A SnackBar!'));
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +29,7 @@ class _SecondState extends State<Second> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: width,
-                  height: height*0.45,
-                  child: Image.asset('assets/login_food_icon.png',fit: BoxFit.fill,),
-                ),
+                SizedBox(height: 60.0),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -57,7 +39,39 @@ class _SecondState extends State<Second> {
                     ],
                   ),
                 ),
-                SizedBox(height: 30.0,),
+                TextField(
+                  controller: _first_name,
+                  decoration: InputDecoration(
+                    hintText: 'First Name',
+                    //suffixIcon: Icon(Icons.person),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    )
+                  ),
+                ),
+                SizedBox(height: 20.0,),
+                TextField(
+                  controller: _last_name,
+                  decoration: InputDecoration(
+                      hintText: 'Last Name',
+                      //suffixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      )
+                  ),
+                ),
+                SizedBox(height: 20.0,),
+                TextField(
+                  controller: _username,
+                  decoration: InputDecoration(
+                    hintText: 'Username',
+                    //suffixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.0,),
                 TextField(
                   controller: _email_controller,
                   decoration: InputDecoration(
@@ -81,6 +95,18 @@ class _SecondState extends State<Second> {
                   ),
                 ),
                 SizedBox(height: 30.0,),
+                TextField(
+                  controller: _password_confirm,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                      hintText: 'Confirm Password',
+                      suffixIcon: Icon(Icons.visibility_off),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      )
+                  ),
+                ),
+                SizedBox(height: 20.0,),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Row(
@@ -90,15 +116,14 @@ class _SecondState extends State<Second> {
                       RaisedButton(
                         child: Text('Signup'),
                         color: Color(0xffEE7B23),
-                        onPressed: () {
+                        onPressed: () async{
+                          UserList = await SignUp(_username.text, _first_name.text, _last_name.text, _email_controller.text, _password_controller.text, _password_confirm.text);
+                          if (UserList != null)
+                          {
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+                          }
                         },
                       ),
-                      Text(
-                        'user:',
-                      ),
-                      Text(
-                        '$emailText',
-                      )
                     ],
                   ),
                 ),
@@ -121,8 +146,6 @@ class _SecondState extends State<Second> {
                     ),
                   ),
                 ),
-
-
               ],
             ),
           ),

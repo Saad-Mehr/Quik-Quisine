@@ -3,6 +3,7 @@ import 'package:quikquisine490/calendar.dart';
 import 'package:quikquisine490/main.dart';
 import 'package:quikquisine490/search.dart';
 import 'recipes.dart';
+import 'user.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {

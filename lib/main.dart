@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'HomePage.dart';
 import 'mysql.dart';
+import 'user.dart';
 
 
 
@@ -14,6 +15,10 @@ class Myapp extends StatefulWidget {
 }
 
 class _MyappState extends State<Myapp> {
+
+  final TextEditingController _email_controller = TextEditingController();
+  final TextEditingController _password_controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     double width=MediaQuery.of(context).size.width;
@@ -44,6 +49,7 @@ class _MyappState extends State<Myapp> {
               ),
               SizedBox(height: 30.0,),
               TextField(
+                controller: _email_controller,
                 decoration: InputDecoration(
                   hintText: 'Email',
                   suffixIcon: Icon(Icons.email),
@@ -54,6 +60,7 @@ class _MyappState extends State<Myapp> {
               ),
               SizedBox(height: 20.0,),
               TextField(
+                controller: _password_controller,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -73,24 +80,25 @@ class _MyappState extends State<Myapp> {
                     RaisedButton(
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
-                      onPressed: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height:20.0),
-              GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>Second()));
-                },
-                child: Text.rich(
-                  TextSpan(
-                      text: 'Don\'t have an account? ',
+                      onPressed: () async{
+                          int response_code = await LogIn(_email_controller.text, _password_controller.text);
+                          if (response_code == 200)
+                          {
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+                          };
+                        },
+                      ),
+    ],
+    ),
+    ),
+    SizedBox(height:20.0),
+    GestureDetector(
+    onTap: (){
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>Second()));
+    },
+    child: Text.rich(
+    TextSpan(
+    text: 'Don\'t have an account? ',
                       children: [
                         TextSpan(
                           text: 'Signup',

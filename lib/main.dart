@@ -19,6 +19,17 @@ class _MyappState extends State<Myapp> {
   final TextEditingController _email_controller = TextEditingController();
   final TextEditingController _password_controller = TextEditingController();
 
+  var statusText;
+  double _opacity = 0.0;
+  bool _visible = false;
+  bool isLoading = false;
+
+  void opacityAndLoading(){
+    _opacity = 1;
+    _visible = true;
+    isLoading = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     double width=MediaQuery.of(context).size.width;
@@ -47,7 +58,26 @@ class _MyappState extends State<Myapp> {
                   ],
                 ),
               ),
-              SizedBox(height: 30.0,),
+              SizedBox(height: 10.0,),
+              AnimatedOpacity(
+                duration: Duration(milliseconds: 300),
+                opacity: _opacity,
+                child: Column(
+                        children: <Widget>[
+                          Visibility(
+                              child: Text(
+                              '$statusText',
+                              style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),),
+                            visible: _visible,
+                          ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 15.0,),
               TextField(
                 controller: _email_controller,
                 decoration: InputDecoration(
@@ -70,22 +100,45 @@ class _MyappState extends State<Myapp> {
                   ),
                 ),
               ),
-              SizedBox(height: 30.0,),
+              //SizedBox(height: 30.0,),
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Forgot password?',style: TextStyle(fontSize: 12.0),),
-                    RaisedButton(
+                    isLoading ? Center(
+                      child: CircularProgressIndicator(),
+                    ) : new RaisedButton(
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
                       onPressed: () async{
+
+                          setState((){isLoading = true;});
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
+
                           if (response_code == 200)
                           {
                             Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
-                          };
+                          } else if ( response_code == 401 ) {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Incorrect password';
+                              opacityAndLoading();
+                            });
+                          } else if ( response_code == 500 ) {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Email does not exist';
+                              opacityAndLoading();
+                            });
+                          } else {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Unknown error';
+                              opacityAndLoading();
+                            });
+                          }
                         },
                       ),
     ],

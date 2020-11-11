@@ -24,6 +24,8 @@ Future<int> LogIn(String email, String password) async{
     List user = [data['email'],data['username'],data['authentication_token'],data['id']];
     print(response.statusCode);
     return response.statusCode;
+  } else if( (response.statusCode == 401) || (response.statusCode == 500) ){ // incorrect email and/or password
+    return response.statusCode;
   }
   else
     return null;

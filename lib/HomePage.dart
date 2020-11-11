@@ -1,41 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:quikquisine490/calendar.dart';
 import 'package:quikquisine490/main.dart';
-import 'package:quikquisine490/user.dart';
+import 'package:quikquisine490/search.dart';
 import 'recipes.dart';
-
+import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
-  //final UserList;
-  //HomePage(this.UserList);
   @override
   Widget build(BuildContext context) {
-    print(UserList);
-  return MaterialApp(
-    debugShowCheckedModeBanner: false,
-    title: 'Main Menu',
-    theme: ThemeData(
-     primarySwatch: Colors.teal,
-    ),
-   home: Scaffold(
-    appBar: AppBar(title: Text('Main Menu'),
-        leading: IconButton(icon:Icon(Icons.arrow_back),
-          onPressed:() => Navigator.pop(context, false),
-        )
-    ),
-    body: BodyLayout(),
-   ),
-  );
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Main Menu',
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+            title: Text('Main Menu'),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context, false),
+            )),
+        body: BodyLayout(),
+      ),
+    );
   }
 }
 
-  class BodyLayout extends StatelessWidget {
-    @override
-    Widget build(BuildContext context) {
-     return _myListView(context);
-    }
+class BodyLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return _myListView(context);
   }
+}
 
-  // replace this function with the code in the examples
+// replace this function with the code in the examples
 Widget _myListView(BuildContext context) {
   return ListView(
     children: <Widget>[
@@ -45,7 +44,27 @@ Widget _myListView(BuildContext context) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => recipePage()),
+            MaterialPageRoute(builder: (context) => RecipePage()),
+          );
+        },
+      ),
+      ListTile(
+        title: Text('Search'),
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => searchPage()),
+          );
+        },
+      ),
+      ListTile(
+        title: Text('Meal Planner'),
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MyApp()),
           );
         },
       ),

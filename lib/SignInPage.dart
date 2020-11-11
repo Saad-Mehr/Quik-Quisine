@@ -117,8 +117,8 @@ class _SecondState extends State<Second> {
                         child: Text('Signup'),
                         color: Color(0xffEE7B23),
                         onPressed: () async{
-                          UserList = await SignUp(_username.text, _first_name.text, _last_name.text, _email_controller.text, _password_controller.text, _password_confirm.text);
-                          if (UserList != null)
+                          int response_code = await SignUp(_username.text, _first_name.text, _last_name.text, _email_controller.text, _password_controller.text, _password_confirm.text);
+                          if (response_code == 200)
                           {
                             Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
                           }

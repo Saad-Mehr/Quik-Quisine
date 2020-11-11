@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 List UserList = [];
 
-Future<List> LogIn(String email, String password) async{
+Future<int> LogIn(String email, String password) async{
   var resBody = {};
   resBody["email"] = email;
   resBody["password"] = password;
@@ -23,13 +23,13 @@ Future<List> LogIn(String email, String password) async{
     //var testuser = User(test);
     List user = [data['email'],data['username'],data['authentication_token'],data['id']];
     print(response.statusCode);
-    return user;
+    return response.statusCode;
   }
   else
     return null;
 }
 
-Future<List> SignUp(String UserName,String FirstName, String LastName, String email, String password, String PasswordConfirmation) async{
+Future<int> SignUp(String UserName,String FirstName, String LastName, String email, String password, String PasswordConfirmation) async{
   var resBody = {};
   resBody["username"] = UserName;
   resBody["first_name"] = FirstName;

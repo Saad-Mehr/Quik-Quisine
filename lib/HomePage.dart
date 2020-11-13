@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:quikquisine490/calendar.dart';
 import 'package:quikquisine490/main.dart';
 import 'package:quikquisine490/search.dart';
+import 'package:quikquisine490/profile.dart';
 import 'recipes.dart';
 import 'user.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +74,10 @@ Widget _myListView(BuildContext context) {
         title: Text('Profile'),
         trailing: Icon(Icons.keyboard_arrow_right),
         onTap: () {
-          print('Moon');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => profile()),
+          );
         },
       ),
       ListTile(

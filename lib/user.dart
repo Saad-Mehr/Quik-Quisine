@@ -24,8 +24,10 @@ Future<int> LogIn(String email, String password) async{
     List user = [data['email'],data['username'],data['authentication_token'],data['id']];
     print(response.statusCode);
     return response.statusCode;
+
   } else if( (response.statusCode == 401) || (response.statusCode == 500) ){ // incorrect email and/or password
     return response.statusCode;
+
   }
   else
     return null;
@@ -53,6 +55,7 @@ Future<int> SignUp(String UserName,String FirstName, String LastName, String ema
     var data = parsedJson['data'];
     UserList = [data['id'],data['email'],data['username'],data['authentication_token']];
     print(response.statusCode);
+
     return response.statusCode;
   }
   else

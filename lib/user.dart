@@ -1,7 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/material.dart';
 
 
 List UserList = [];
@@ -19,9 +18,7 @@ Future<int> LogIn(String email, String password) async{
   if (response.statusCode == 200) {
     var parsedJson = json.decode(response.body);
     var data = parsedJson['data'];
-    //List<String> tags = data != null ? List.from(data) : null;
-    //var testuser = User(test);
-    List user = [data['email'],data['username'],data['authentication_token'],data['id']];
+    UserList = [data['id'],data['username'],data['email'],data['authentication_token']];
     print(response.statusCode);
     return response.statusCode;
 
@@ -53,7 +50,7 @@ Future<int> SignUp(String UserName,String FirstName, String LastName, String ema
   if (response.statusCode == 200) {
     var parsedJson = json.decode(response.body);
     var data = parsedJson['data'];
-    UserList = [data['id'],data['email'],data['username'],data['authentication_token']];
+    UserList = [data['id'],data['username'],data['email'],data['authentication_token']];
     print(response.statusCode);
 
     return response.statusCode;

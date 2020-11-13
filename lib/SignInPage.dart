@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'HomePage.dart';
 import 'main.dart';
-import 'mysql.dart';
 import 'user.dart';
 
 class Second extends StatefulWidget {

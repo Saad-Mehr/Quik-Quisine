@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+
+import 'package:quikquisine490/user.dart';
 //test email test@gmail.com
 //test token KV7aSwEfxti-X2Mr6LxJ
 
 Map<String, String> get headers => {
-  "X-User-Email": 'test@gmail.com',
-  "X-User-Token":'KV7aSwEfxti-X2Mr6LxJ',
+  "X-User-Email": UserList[2],
+  "X-User-Token": UserList[3],
 };
 Future<List> getData() async{
-  var url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/51';
+  String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[0].toString();
   http.Response response = await http.get(url,headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];

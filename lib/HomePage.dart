@@ -56,7 +56,7 @@ Widget _myListView(BuildContext context) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => searchPage()),
+            MaterialPageRoute(builder: (context) => SearchPage()),
           );
         },
       ),

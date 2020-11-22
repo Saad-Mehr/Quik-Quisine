@@ -5,8 +5,10 @@ import 'search.dart';
 var resultSearchTerm;
 List<dynamic> resultNames;
 List<dynamic> resultDesc;
+List<Widget> recipesResultsList = List();
 
-Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions) {
+Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle,
+                                                        String serving, String ingredients, String instructions) {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -16,7 +18,7 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n\nIngredients:\n" + subtitle +'\n\nInstructions:\n' + instructions)
+              Text(title + "\n" + subtitle + "\n" + serving + "\nIngredients:\n" + ingredients + '\nInstructions:\n' + instructions)
             ],
           ),
         ),
@@ -58,13 +60,19 @@ class RecipeResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future.delayed(Duration(milliseconds: 500));
 
     resultNames = getRecipeNames;
     resultDesc = getRecipeDesc;
     resultSearchTerm = getSearchTerm;
 
-    String _title = 'Results for ' + getSearchTerm + ': ${resultNames.length}';
+    String _title;
+
+    if(getSearchTerm.isNotEmpty) {
+      _title = 'Results for ' + getSearchTerm +
+          ': ${resultNames.length}';
+    } else {
+      _title = 'Results' + ': ${resultNames.length}';
+    }
 
     return MaterialApp(
       title: _title,
@@ -82,31 +90,6 @@ class RecipeResultsPage extends StatelessWidget {
   }
 }
 
-List<Widget> getRecipeResults() {
-  List<Widget> recipes = List();
-
-  print(resultNames.length);
-
-  for (int i = 0; i < resultNames.length; i++) {
-    recipes.add(CustomListItemTwo(
-      thumbnail: Container(
-        child: Image.asset('assets/${resultNames[i]}.jpg', fit: BoxFit.fill,),
-      ),
-      title: resultNames[i],
-      subtitle: 'Ingredients: 16 ounces sliced pepperoncini undrained, 14 1/2 ounces diced tomatoes undrained, 1 medium onion chopped, 1/2 cup water, 2 packages Italian salad dressing mix, 1 teaspoon dried oregano, 1/2 teaspoon garlic powder, 1 beef rump roast or bottom round roast (3 to 4 pounds), 12 Italian rolls split',
-      instructions: '1. In a bowl, mix the first 7 ingredients. Halve roast; place in a 6-qt. electric pressure cooker. Pour pepperoncini mixture over top. Lock lid; close pressure-release valve. Adjust to pressure-cook on high for 60 minutes. Let pressure release naturally. A thermometer inserted into beef should read at least 145°. \n2. Remove roast; cool slightly. Skim fat from cooking juices. Shred beef with 2 forks. Return beef and cooking juices to pressure cooker; heat through. Serve on rolls.',
-    ));
-  }
-
-  if(resultNames.length == 0) {
-    recipes.add(Text(
-      'No results for $searchTerm.',
-    ));
-  }
-
-  return recipes;
-}
-
 class ResultsWidget extends StatelessWidget {
   ResultsWidget({Key key}) : super(key: key);
 
@@ -122,18 +105,57 @@ class ResultsWidget extends StatelessWidget {
   }
 }
 
+List<Widget> getRecipeResults() {
 
+  for (int i = 0; i < recipeNames.length; i++) {
+    recipesResultsList.add(CustomListItemTwo(
+      thumbnail: Container(
+        child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
+      ),
+      title: recipeNames[i],
+      subtitle: 'Description: ${recipeDesc[i]}',
+      serving: 'Serving size: ${recipeServing[i]}',
+      ingredients: ' ${filteredSortedIng[i]}',
+      instructions: '${recipePrep[i]}',
+    ));
+  }
+
+  if(resultNames.length == 0) {
+    if(searchTerm.isEmpty){
+      recipesResultsList.add(Text(
+        'No results to display.',
+      ));
+    } else {
+      recipesResultsList.add(Text(
+        'No results for $searchTerm.',
+      ));
+    }
+  }
+
+  return recipesResultsList;
+}
+
+void clearResults(){
+  resultSearchTerm = "";
+  resultNames = [];
+  resultDesc = [];
+  recipesResultsList = [];
+  clearRecipeList();
+}
 
 class _ArticleDescription extends StatelessWidget {
   _ArticleDescription({
     Key key,
     this.title,
     this.subtitle,
+    this.serving,
+    this.ingredients,
   }) : super(key: key);
 
   final String title;
   final String subtitle;
-
+  final String serving;
+  final String ingredients;
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +178,27 @@ class _ArticleDescription extends StatelessWidget {
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
               Text(
                 '$subtitle',
-                maxLines: 3,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12.0,
+                  color: Colors.black54,
+                ),
+              ),
+              const Padding(padding: EdgeInsets.only(bottom: 2.0)),
+              Text(
+                '$serving',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12.0,
+                  color: Colors.black54,
+                ),
+              ),
+              const Padding(padding: EdgeInsets.only(bottom: 2.0)),
+              Text(
+                '$ingredients',
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 12.0,
@@ -185,20 +227,23 @@ class CustomListItemTwo extends StatelessWidget {
     this.thumbnail,
     this.title,
     this.subtitle,
+    this.serving,
+    this.ingredients,
     this.instructions,
   }) : super(key: key);
 
   final Widget thumbnail;
   final String title;
   final String subtitle;
+  final String serving;
+  final String ingredients;
   final String instructions;
-
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.instructions);
+        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.serving, this.ingredients, this.instructions);
       },
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -218,6 +263,8 @@ class CustomListItemTwo extends StatelessWidget {
                 child: _ArticleDescription(
                   title: title,
                   subtitle: subtitle,
+                  serving: serving,
+                  ingredients: ingredients,
                 ),
               ),
             )

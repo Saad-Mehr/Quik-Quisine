@@ -6,6 +6,7 @@ import 'profile.dart';
 import 'recipes.dart';
 import 'user.dart';
 
+
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,8 @@ class HomePage extends StatelessWidget {
 class BodyLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print(UserList);
+    getRecipes();
+    retrieveList();
     return _myListView(context);
   }
 }

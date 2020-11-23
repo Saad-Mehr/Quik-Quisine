@@ -8,7 +8,7 @@ import 'dart:async';
 var resultSearchTerm;
 List<dynamic> resultNames;
 List<dynamic> resultDesc;
- 
+List<Widget> recipesResultsList = List();
 List<dynamic> totalRecipes = new List();
 List<dynamic> mealPlannerRecipes = new List();
 Map<String, String> get headers => {
@@ -52,7 +52,7 @@ Future getRecipes() async{
   totalRecipes = data;
 }
 
-Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions, int id) {
+Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions,String serving,String ingredients, int id) {
 
   return showDialog(
     context: context,
@@ -229,7 +229,7 @@ void clearResults(){
   resultSearchTerm = "";
   resultNames = [];
   resultDesc = [];
-  recipesResultsList = [];
+  var recipesResultsList = [];
   clearRecipeList();
 }
 
@@ -338,7 +338,7 @@ class CustomListItemTwo extends StatelessWidget {
     return GestureDetector(
       onTap: () {
 
-        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.instructions, this.id);
+        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.instructions,this.serving,this.ingredients, this.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),

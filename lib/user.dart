@@ -19,6 +19,11 @@ Future<int> LogIn(String email, String password) async{
     var parsedJson = json.decode(response.body);
     var data = parsedJson['data'];
     UserList = [data['id'],data['username'],data['email'],data['authentication_token']];
+    //List<String> tags = data != null ? List.from(data) : null;
+    //var testuser = User(test);
+    List user = [data['email'],data['username'],data['authentication_token'],data['id']];
+    UserList = user;
+    print(UserList);
     print(response.statusCode);
     return response.statusCode;
 

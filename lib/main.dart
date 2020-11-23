@@ -122,6 +122,8 @@ class _MyappState extends State<Myapp> {
                           {
                             Navigator.of(context).push(new MaterialPageRoute(builder: (_)=>new HomePage()),).then((val)=>val);
                             //Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+                            setState((){isLoading = false;});
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
                           } else if ( response_code == 401 ) {
                             setState(() {
                               print('Status code is: $response_code');

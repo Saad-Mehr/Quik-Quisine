@@ -110,7 +110,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   Future getIngredients() async {
 
     String sqlQuery = 'SELECT ingredients.id, ingredients.name ' +
-                      'FROM heroku_19a4bd20cf30ab1.ingredients;';
+        'FROM heroku_19a4bd20cf30ab1.ingredients;';
 
     await db.getConnection().then((conn) {
 
@@ -256,6 +256,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));
 
     await sortSearchedIngredients();
+
+    print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
 
     setState(() {
       isLoading = false;
@@ -451,21 +453,21 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               child: Card(
                                   child: (new ListView(
                                     physics: const NeverScrollableScrollPhysics(),
-                                     shrinkWrap: true,
-                                      children: categoryMap.keys.map((String key) {
-                                        return new CheckboxListTile(
-                                          title: new Text(key, style: TextStyle(color: Colors.black54),),
-                                          value: categoryMap[key],
-                                          activeColor: Colors.green,
-                                          checkColor: Colors.white,
-                                          onChanged: (bool value) {
-                                            setState(() {
-                                              categoryMap[key] = value;
-                                            });
-                                          },
-                                        );
-                                      }).toList(),
-                                    ))
+                                    shrinkWrap: true,
+                                    children: categoryMap.keys.map((String key) {
+                                      return new CheckboxListTile(
+                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                        value: categoryMap[key],
+                                        activeColor: Colors.green,
+                                        checkColor: Colors.white,
+                                        onChanged: (bool value) {
+                                          setState(() {
+                                            categoryMap[key] = value;
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ))
                               )
                           ),
                           SizedBox(height: 40.0,),
@@ -560,12 +562,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                     ),
                   ),
                   Container(
-                      height: height,
-                      width: width,
-                      margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+                    height: height,
+                    width: width,
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
 
-                      child: SingleChildScrollView(
-                        child: Column(
+                    child: SingleChildScrollView(
+                      child: Column(
                           children: [
                             SizedBox(height: 40.0,),
                             TextField(
@@ -634,8 +636,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               },
                             ),
                           ]
-                        ),
                       ),
+                    ),
                   ),
                   Container(
                     height: height,
@@ -741,14 +743,14 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                             ),
                             SizedBox(height: 25.0,),
                             isIngredientErr ? Center(
-                              child: Text(
-                                "Error: Please enter an ingredient",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.red[400],
-                                ),
-                              )
+                                child: Text(
+                                  "Error: Please enter an ingredient",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.red[400],
+                                  ),
+                                )
                             ) : SizedBox(height: 21.0,),
                             SizedBox(height: 25.0,),
                             isLoading ? Center(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'HomePage.dart';
 import 'search.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -10,6 +9,8 @@ List<dynamic> resultNames;
 List<dynamic> resultDesc;
 List<Widget> recipesResultsList = List();
 List<dynamic> totalRecipes = new List();
+List<dynamic> sortedTotalRecipeIng = [];
+List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = new List();
 Map<String, String> get headers => {
   "X-User-Email": 'test@gmail.com',
@@ -34,10 +35,14 @@ Future<List> addToList(int id) async{
 
 Future retrieveList() async{
 
-  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/users/users/51/meal_planner_baskets',headers: headers);
+  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/users/users/51/meal_planner_baskets', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   mealPlannerRecipes = data;
+
+  //print('mealPlanner data is ------------------------ ' + mealPlannerRecipes.toString());
+  //print('mealPlanner[0] data is ------------------------ ' + mealPlannerRecipes[0].toString());
+  //print('mealPlannerRecipes images are: ------------------------- ' + mealPlannerRecipes[0]['get_image_url'].toString());
 }
 
 Future<List> deleteList(int id) async{
@@ -45,11 +50,33 @@ Future<List> deleteList(int id) async{
   print(response.statusCode);
 }
 
+Future sortAllIngredients() async {
+
+  sortedTotalRecipeIng.length = totalRecipes.length;
+  for(int i = 0; i < totalRecipes.length; i++){
+
+    sortedTotalRecipeIng[i] = [];
+
+    for(int j = 0; j < totalRecipes[i]['list_of_ingredients'].length; j++){
+
+      sortedTotalRecipeIng[i].add("${totalRecipes[i]['list_of_ingredients'][j]['ingredient_qty']} "
+          "${totalRecipes[i]['list_of_ingredients'][j]['name']}\n");
+    }
+
+    filteredSortedTotal.add(sortedTotalRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
+  }
+
+}
+
 Future getRecipes() async{
-  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes',headers: headers);
+  sortedTotalRecipeIng.clear();
+  filteredSortedTotal.clear();
+  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   totalRecipes = data;
+
+  await sortAllIngredients();
 }
 
 Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions,String serving,String ingredients, int id) {
@@ -82,7 +109,7 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
   );
 }
 
-Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions, int id) {
+Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String serving, String instructions, int id) {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -92,7 +119,7 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n\nIngredients:\n" + subtitle +'\n\nInstructions:\n' + instructions)
+              Text(title + "\n" + subtitle + "\n" + serving + '\n\nInstructions:\n' + instructions)
             ],
           ),
         ),
@@ -229,7 +256,7 @@ void clearResults(){
   resultSearchTerm = "";
   resultNames = [];
   resultDesc = [];
-  var recipesResultsList = [];
+  recipesResultsList = [];
   clearRecipeList();
 }
 
@@ -238,14 +265,18 @@ class _ArticleDescription extends StatelessWidget {
     Key key,
     this.title,
     this.subtitle,
+    this.instructions,
     this.serving,
     this.ingredients,
+    this.id
   }) : super(key: key);
 
   final String title;
   final String subtitle;
+  final String instructions;
   final String serving;
   final String ingredients;
+  final String id;
 
   @override
   Widget build(BuildContext context) {
@@ -358,6 +389,8 @@ class CustomListItemTwo extends StatelessWidget {
                   child: _ArticleDescription(
                     title: title,
                     subtitle: subtitle,
+                    serving: serving,
+                    ingredients: ingredients,
                   ),
 
                 ),
@@ -369,12 +402,14 @@ class CustomListItemTwo extends StatelessWidget {
     );
   }
 }
+
 class CustomListItemThree extends StatelessWidget {
   CustomListItemThree({
     Key key,
     this.thumbnail,
     this.title,
     this.subtitle,
+    this.serving,
     this.instructions,
     this.id,
   }) : super(key: key);
@@ -382,6 +417,7 @@ class CustomListItemThree extends StatelessWidget {
   final Widget thumbnail;
   final String title;
   final String subtitle;
+  final String serving;
   final String instructions;
   final int id;
 
@@ -389,7 +425,7 @@ class CustomListItemThree extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.instructions, this.id);
+        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.serving, this.instructions, this.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -409,6 +445,8 @@ class CustomListItemThree extends StatelessWidget {
                   child: _ArticleDescription(
                     title: title,
                     subtitle: subtitle,
+                    serving: serving,
+                    instructions: instructions,
                   ),
                 ),
               )
@@ -423,24 +461,23 @@ class CustomListItemThree extends StatelessWidget {
 class MyStatelessWidget extends StatelessWidget {
   MyStatelessWidget({Key key}) : super(key: key);
 
-  @override
   Widget build(BuildContext context) {
-    getRecipes();
     return ListView.builder(
       itemCount: totalRecipes.length,
       itemBuilder: (BuildContext context,index){
         return CustomListItemTwo(
           thumbnail: Container(
-            child: Image.asset('assets/' + totalRecipes[index]['name'] + '.jpg',fit: BoxFit.fill,),
+            child: Image.network(totalRecipes[index]['get_image_url'], fit: BoxFit.fill,),
           ),
           title: totalRecipes[index]['name'],
           subtitle: totalRecipes[index]['description'],
-          instructions: "Servings: " + totalRecipes[index]['serving'].toString() + " " + "Preparation: " ,
+          serving: "Servings: ${totalRecipes[index]['serving']}",
+          ingredients: " ${filteredSortedTotal[index]}",
+          instructions: "${totalRecipes[index]['preparation']}",
           id: totalRecipes[index]['id'],
         );
       },
     );
-
   }
 }
 
@@ -459,7 +496,8 @@ class MyMealPlanner extends StatelessWidget {
           ),
           title: mealPlannerRecipes[index]['name'],
           subtitle: mealPlannerRecipes[index]['description'],
-          instructions: "Servings: " + mealPlannerRecipes[index]['serving'].toString() + " " + "Preparation: " ,
+          serving: "Servings: ${mealPlannerRecipes[index]['serving']}",
+          instructions: "${mealPlannerRecipes[index]['preparation']}",
           id: mealPlannerRecipes[index]['id'],
         );
       },

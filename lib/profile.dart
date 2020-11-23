@@ -11,6 +11,7 @@ Map<String, String> get headers => {
   "X-User-Email": UserList[2],
   "X-User-Token": UserList[3],
 };
+
 Future<List> getData() async{
   String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[0].toString();
   http.Response response = await http.get(url,headers: headers);
@@ -19,6 +20,7 @@ Future<List> getData() async{
   List temp = [data['email'],data['username'],data['first_name'],data['last_name']];
   return temp;
 }
+
 class profile extends StatefulWidget {
   @override
   getUserInfoState createState() =>
@@ -114,5 +116,4 @@ class getUserInfoState extends State<profile> {
        ),
      );
   }
-  }
-
+}

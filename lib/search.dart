@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
-import 'package:quikquisine490/main.dart';
 import 'package:quikquisine490/recipes.dart';
+import 'package:quikquisine490/searchRetrieval.dart';
 import 'mysql.dart';
 
 var searchTerm = "";
+final String searchTypeTextAll = "All";
+final String searchTypeTextPref = "Preference";
+final String searchTypeTextCat = "Category";
+final String searchTypeTextIng = "Ingredient";
+List newCategories = [];
+List newPreferences = [];
+List categoryIDs = [];
+List preferenceIDs = [];
+bool isAnyCategoryChecked = false;
+bool isAnyPreferenceChecked = false;
+var checkedCategories = [];
+var checkedPreferences = [];
+List<dynamic> recipeIDs = [];
 List<dynamic> recipeNames = [];
 List<dynamic> recipeDesc = [];
-List<Map<dynamic,dynamic>> recipes = [];
+List<dynamic> recipeServing = [];
+List<dynamic> recipeIngredients = [];
+List<dynamic> recipePicURLs = [];
+List<dynamic> recipePrep = [];
+List<dynamic> sortedRecipeIng = [];
+List<dynamic> filteredSortedIng = [];
+List<Map<dynamic,dynamic>> ingredientsList = [];
+List<dynamic> searchedIngredients = [];
 
-class searchPage extends StatelessWidget {
+class SearchPage extends StatelessWidget {
   static const String _title = 'Search';
 
   @override
@@ -17,8 +37,11 @@ class searchPage extends StatelessWidget {
     return MaterialApp(
       title: _title,
       home: Scaffold(
-        appBar: AppBar(title: const Text(_title),
-            leading: IconButton(icon: Icon(Icons.arrow_back),
+        appBar: AppBar(
+            title: const Text(_title),
+            backgroundColor: Colors.deepOrangeAccent,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, false),
             )
         ),
@@ -47,327 +70,723 @@ List get getRecipeDesc {
   return recipeDesc;
 }
 
+void clearRecipeList(){
+
+  searchTerm = "";
+  recipeIDs.clear();
+  recipeNames.clear();
+  recipeDesc.clear();
+  recipeServing.clear();
+  recipeIngredients.clear();
+  recipePicURLs.clear();
+  recipePrep.clear();
+  sortedRecipeIng = [];
+  filteredSortedIng.clear();
+  categoryIDs.clear();
+  preferenceIDs.clear();
+  checkedCategories.clear();
+  checkedPreferences.clear();
+  searchedIngredients.clear();
+  isAnyCategoryChecked = false;
+  isAnyPreferenceChecked = false;
+}
+
 class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixin {
 
   bool isLoading = false;
+  bool isCategoryLoading = false;
+  bool isPreferenceLoading = false;
+  bool isIngredientLoading = false;
+  bool isIngredientErr = false;
+  Map<String, bool> categoryMap = {};
+  Map<String, bool> preferenceMap = {};
   var db = new Mysql();
-  final searchController = TextEditingController();
+  final recipesAllController = TextEditingController();
+  final ingredientsAllController = TextEditingController();
+  final onlyCategoriesController = TextEditingController();
+  final onlyPreferencesController = TextEditingController();
+  final onlyIngredientsController = TextEditingController();
 
-  void dispose(){
-    searchController.dispose();
-    super.dispose();
-  }
+  Future getIngredients() async {
 
-  Future getRecipe(String searchText) async {
-    recipeNames = [];
-    recipeDesc = [];
-    recipes = [];
-
-    searchTerm = searchText;
-
-    setState(() {
-      isLoading = true; //Data is loading
-    });
+    String sqlQuery = 'SELECT ingredients.id, ingredients.name ' +
+                      'FROM heroku_19a4bd20cf30ab1.ingredients;';
 
     await db.getConnection().then((conn) {
-      String sql = 'select name, description from heroku_19a4bd20cf30ab1.recipes where name LIKE "%' + searchTerm + '%";';
-      conn.query(sql).then((mysql1Dart.Results results) {
+
+      return conn.query(sqlQuery).then((mysql1Dart.Results results) {
         results.forEach((row) {
 
-            Map r = new Map();
-            for(int i=0; i<results.fields.length; i++) {
-              r[results.fields[i].name] = row[i];
-            }
+          Map r = new Map();
+          for(int i=0; i<results.fields.length; i++) {
+            r[results.fields[i].name] = row[i];
+          }
 
-            recipes.add(r);
+          ingredientsList.add(r);
         });
       });
     });
 
-    await Future.delayed(Duration(milliseconds: 450));
-
-    recipes.forEach((recipe) => recipeNames.add(recipe['name']));
-    recipes.forEach((recipe) => recipeDesc.add(recipe['description']));
-    print(recipeNames);
-    print(recipeDesc);
+    print('ingredientsList is ' + ingredientsList.toString());
 
     setState(() {
-      isLoading = false; //Data has loaded
+      isIngredientLoading = false;
     });
   }
 
-  List<String> _options = [
-    "Appetizer",
-    "Entree",
-    "Dessert",
-    "Meat-lovers",
-    "Vegetarian"
-  ];
-  List<bool> _selected = [false, false, false, false, false];
+  getIngredientIds(String ingParam){
 
-  Widget _buildChips() {
-    List<Widget> chips = new List();
+    searchedIngredients = ingParam.split(',');
 
-    for (int i = 0; i < _options.length; i++) {
-      FilterChip filterChip = FilterChip(
-        selected: _selected[i],
-        label: Text(_options[i], style: TextStyle(color: Colors.white)),
-        showCheckmark: false,
-        avatar: _selected[i] ? Icon(Icons.check, color: Colors.white) : null,
-        backgroundColor: Colors.black38,
-        selectedColor: Colors.blue,
-        onSelected: (bool selected) {
-          setState(() {
-            _selected[i] = selected;
-          });
-        },
-      );
+    for(int i = 0; i < searchedIngredients.length; i++){
+      for(int j = 0; j < ingredientsList.length; j++){
+        if(ingredientsList[j]['name'] == searchedIngredients[i]){
 
-      chips.add(Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: filterChip,
-      ));
+          searchedIngredients[i] = ingredientsList[j]['id'].toString();
+        }
+      }
     }
 
-    return ListView(
-      scrollDirection: Axis.horizontal,
-      children: chips,
-      shrinkWrap: true,
-    );
+    ingParam = searchedIngredients.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+    return ingParam;
+  }
+
+  Future sortSearchedIngredients() async {
+
+    sortedRecipeIng.length = recipeIngredients.length;
+
+    for(int i = 0; i < recipeIngredients.length; i++){
+      sortedRecipeIng[i] = [];
+      for(int j = 0; j < recipeIngredients[i].length; j++){
+
+        sortedRecipeIng[i].add("${recipeIngredients[i][j]['ingredient_qty']} ${recipeIngredients[i][j]['name']}\n");
+      }
+      filteredSortedIng.add(sortedRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
+    }
+  }
+
+  Future metaSearch(String searchType, String searchText, String ingredientText) async {
+
+    String linkParams = '';
+    String nameParam = '';
+    String prefParam = '';
+    String categParam = '';
+    String ingParam = '';
+
+    if(searchText != null && searchText.isNotEmpty){
+
+      searchTerm = searchText;
+      nameParam = searchTerm;
+      linkParams += '?recipe_name=$nameParam';
+    }
+
+    if(searchType == searchTypeTextAll){
+
+      nameParam.isEmpty ? linkParams += '?search_type=All' : linkParams += '&search_type=All';
+
+      await getCheckedCategories();
+      await getCheckedPreferences();
+
+      if(isAnyPreferenceChecked == true) {
+        prefParam = preferenceIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+        linkParams += '&preferences=';
+        linkParams += prefParam;
+      }
+
+      if(isAnyCategoryChecked == true) {
+        categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+        linkParams += '&categories=';
+        linkParams += categParam;
+      }
+
+      if(ingredientText.isNotEmpty){
+
+        ingParam = getIngredientIds(ingredientText.split(" ").join(""));
+        linkParams += '&ingredients=';
+        linkParams += ingParam;
+      }
+
+    } else if (searchType == searchTypeTextPref){
+
+      nameParam.isEmpty ? linkParams += '?search_type=Preference' : linkParams += '&search_type=Preference';
+      await getCheckedPreferences();
+
+      if(isAnyPreferenceChecked == true){
+
+        prefParam = preferenceIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+        linkParams += '&preferences=';
+        linkParams += prefParam;
+      }
+
+    } else if (searchType == searchTypeTextCat){
+
+      nameParam.isEmpty ? linkParams += '?search_type=Category' : linkParams += '&search_type=Category';
+      await getCheckedCategories();
+
+      if(isAnyCategoryChecked == true) {
+
+        categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+        linkParams += '&categories=';
+        linkParams += categParam;
+      }
+
+    } else if (searchType == searchTypeTextIng){
+
+      nameParam.isEmpty ? linkParams += '?search_type=Ingredient' : linkParams += '&search_type=Ingredient';
+
+      if(ingredientText.isNotEmpty){
+
+        ingParam = getIngredientIds(ingredientText.split(" ").join(""));
+        linkParams += '&ingredients=';
+        linkParams += ingParam;
+      }
+    } else {
+
+      print('Bad searchType input');
+    }
+
+    await recipeSearch(linkParams);
+
+    searchList.forEach((searchList) => recipeIDs.add(searchList['id']));
+    searchList.forEach((searchList) => recipeNames.add(searchList['name']));
+    searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
+    searchList.forEach((searchList) => recipeServing.add(searchList['serving']));
+    searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
+    searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
+    searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));
+
+    await sortSearchedIngredients();
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+
+    clearRecipeList();
+    ingredientsList.clear();
+
+    setState(() {
+      isCategoryLoading = true; //Data is loading
+      isPreferenceLoading = true;
+      isIngredientLoading = true;
+    });
+
+    super.initState();
+    findCategories();
+    findPreferences();
+    getIngredients();
+    print('hi there');
+  }
+
+  void findCategories() async {
+
+    int responseCode = await categories();
+    print(responseCode);
+
+    if(responseCode == 200){
+      newCategories = categoriesList;
+
+      setState(() {
+        for(int i = 0; i < newCategories.length; i++){
+          categoryMap.putIfAbsent(newCategories[i]['name'].toString(), () => false);
+        }
+      });
+
+      print("new categories of length ${newCategories.length} are: " + newCategories[1]['name'].toString());
+      print("categoryMap is: " + categoryMap.toString());
+    } else {
+      print("Error: unauthorized");
+    }
+
+    setState(() {
+      isCategoryLoading = false;
+    });
+  }
+
+  void findPreferences() async {
+
+    int responseCode = await preferences();
+    print(responseCode);
+
+    if(responseCode == 200){
+      newPreferences = preferencesList;
+
+      setState(() {
+        for(int i = 0; i < newPreferences.length; i++){
+          preferenceMap.putIfAbsent(newPreferences[i]['name'].toString(), () => false);
+        }
+      });
+
+      print("new preferences of length ${newPreferences.length} are: " + newPreferences[1]['name'].toString());
+      print("preferenceMap is: " + preferenceMap.toString());
+    } else {
+      print("Error: unauthorized");
+    }
+
+    setState(() {
+      isPreferenceLoading = false;
+    });
+  }
+
+  Future getCheckedCategories() async {
+
+    categoryMap.forEach((key, value) {
+      if(value == true) {
+        checkedCategories.add(key);
+
+        for(var i = 0; i < categoriesList.length; i++){
+          if(categoriesList[i]['name'] == key){
+            categoryIDs.add(categoriesList[i]['id']);
+          }
+        }
+
+        isAnyCategoryChecked = true;
+      }
+    });
+
+    /*print(checkedCategories);
+    print('category ids are : ' + categoryIDs.toString());
+    print(categoryMap.keys);*/
+  }
+
+  Future getCheckedPreferences() async {
+
+    preferenceMap.forEach((key, value) {
+      if(value == true) {
+        checkedPreferences.add(key);
+
+        for(var i = 0; i < preferencesList.length; i++){
+          if(preferencesList[i]['name'] == key){
+            preferenceIDs.add(preferencesList[i]['id']);
+          }
+        }
+
+        isAnyPreferenceChecked = true;
+      }
+    });
+
+    /*print(checkedPreferences);
+    print('preference ids are : ' + preferenceIDs.toString());
+    print('isAnyPreferenceChecked? : ' + isAnyPreferenceChecked.toString());
+    print(preferenceMap.keys);*/
   }
 
   @override
   Widget build(BuildContext context) {
     double width=MediaQuery.of(context).size.width;
     double height=MediaQuery.of(context).size.height;
-    return Scaffold(
-      body: Container(
-        height: height,
-        width: width,
-        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
 
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: 80.0,),
-                TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search recipes',
-                    prefixIcon: Icon(Icons.search),
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.0),
+    return Scaffold(
+      body: DefaultTabController(
+        length: 4,
+        child: Column(
+          children: <Widget>[
+            Container(
+              constraints: BoxConstraints.expand(height: 60),
+              child: TabBar(
+                  labelColor: Colors.orange[900],
+                  indicatorColor: Colors.orange[700],
+                  tabs: [
+                    Tab(
+                      text: "All",
+                      icon: Icon(Icons.search),
+                    ),
+                    Tab(
+                      text: "Category",
+                      icon: Icon(Icons.book),
+                    ),
+                    Tab(
+                      text: "Preference",
+                      icon: Icon(Icons.favorite),
+                    ),
+                    Tab(
+                      text: "Ingredient",
+                      icon: Icon(Icons.local_dining),
+                    ),
+                  ]
+              ),
+            ),
+            Expanded(
+              child: Container(
+                child: TabBarView(children: [
+                  Container(
+                    height: height,
+                    width: width,
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 40.0,),
+                          TextField(
+                            controller: recipesAllController,
+                            decoration: InputDecoration(
+                              hintText: 'Search recipes',
+                              prefixIcon: Icon(Icons.search),
+                              isDense: true,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                              ),
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          SizedBox(height: 40.0,),
+                          Text(
+                            "Categories",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          isCategoryLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Card(
+                                  child: (new ListView(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                     shrinkWrap: true,
+                                      children: categoryMap.keys.map((String key) {
+                                        return new CheckboxListTile(
+                                          title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                          value: categoryMap[key],
+                                          activeColor: Colors.green,
+                                          checkColor: Colors.white,
+                                          onChanged: (bool value) {
+                                            setState(() {
+                                              categoryMap[key] = value;
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    ))
+                              )
+                          ),
+                          SizedBox(height: 40.0,),
+                          Text(
+                            "Preferences",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          isPreferenceLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Card(
+                                  child: (new ListView(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    children: preferenceMap.keys.map((String key) {
+                                      return new CheckboxListTile(
+                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                        value: preferenceMap[key],
+                                        activeColor: Colors.green,
+                                        checkColor: Colors.white,
+                                        onChanged: (bool value) {
+                                          setState(() {
+                                            preferenceMap[key] = value;
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ))
+                              )
+                          ),
+                          SizedBox(height: 40.0,),
+                          Text(
+                            "Ingredients",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(height: 50.0,),
+                          isIngredientLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : new TextField(
+                            controller: ingredientsAllController,
+                            decoration: InputDecoration(
+                              hintText: 'Search ingredients',
+                              prefixIcon: Icon(Icons.search),
+                              isDense: true,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                              ),
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                          SizedBox(height: 50.0,),
+                          isLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : new RaisedButton(
+                            child: Text('Search'),
+                            color: Colors.orange[600],
+                            textColor: Colors.white,
+                            onPressed: () async {
+                              setState(() {
+                                isLoading = true; //Data is loading
+                              });
+
+                              clearResults();
+
+                              await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
+                              Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                            },
+                          ),
+                          SizedBox(height: 50.0,),
+                          RaisedButton(
+                            child: Text(" Get Checked Checkbox Items ", style: TextStyle(fontSize: 20),),
+                            onPressed: getCheckedCategories,
+                            color: Colors.green,
+                            textColor: Colors.white,
+                            splashColor: Colors.grey,
+                            padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                          ),
+                          SizedBox(height: 40.0,),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              SizedBox(height: 50.0,),
-              Container(
-                height: 30,
-                child: _buildChips(),
-              ),
-              SizedBox(height: 50.0,),
-              RaisedButton(
-                child: Text('Search'),
-                color: Color(0xff0091EA),
-                textColor: Colors.white,
-                onPressed: () {
-                  getRecipe(searchController.text);
-                  Future.delayed(Duration(milliseconds: 1000), () {
-                    // 5s over, navigate to a new page
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
-                  });
-                },
-              ),
-              SizedBox(height: 50.0,),
-              /*Text(
-                'recipe:',
-              ),
-              Text(
-                'recipeNames',
-              )*/
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+                  Container(
+                      height: height,
+                      width: width,
+                      margin: const EdgeInsets.only(left: 20.0, right: 20.0),
 
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
-  }
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            SizedBox(height: 40.0,),
+                            TextField(
+                              controller: onlyCategoriesController,
+                              decoration: InputDecoration(
+                                hintText: 'Search recipes',
+                                prefixIcon: Icon(Icons.search),
+                                isDense: true,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                ),
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                            SizedBox(height: 40.0,),
+                            Text(
+                              "Categories",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            SizedBox(height: 20.0,),
+                            isCategoryLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Card(
+                                    child: (new ListView(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      children: categoryMap.keys.map((String key) {
+                                        return new CheckboxListTile(
+                                          title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                          value: categoryMap[key],
+                                          activeColor: Colors.green,
+                                          checkColor: Colors.white,
+                                          onChanged: (bool value) {
+                                            setState(() {
+                                              categoryMap[key] = value;
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    ))
+                                )
+                            ),
+                            SizedBox(height: 50.0,),
+                            isLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : new RaisedButton(
+                              child: Text('Search'),
+                              color: Colors.orange[600],
+                              textColor: Colors.white,
+                              onPressed: () async {
+                                setState(() {
+                                  isLoading = true; //Data is loading
+                                });
 
-}
+                                clearResults();
 
-
-Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions) {
-  return showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: thumbnail,
-
-        content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text(title + "\n\nIngredients:\n" + subtitle +'\n\nInstructions:\n' + instructions)
-            ],
-          ),
-        ),
-        actions: [
-          FlatButton(
-            child: Text('Ok'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-class _ArticleDescription extends StatelessWidget {
-  _ArticleDescription({
-    Key key,
-    this.title,
-    this.subtitle,
-  }) : super(key: key);
-
-  final String title;
-  final String subtitle;
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                '$title',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Padding(padding: EdgeInsets.only(bottom: 2.0)),
-              Text(
-                '$subtitle',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class CustomListItemTwo extends StatelessWidget {
-  CustomListItemTwo({
-    Key key,
-    this.thumbnail,
-    this.title,
-    this.subtitle,
-    this.instructions,
-  }) : super(key: key);
-
-  final Widget thumbnail;
-  final String title;
-  final String subtitle;
-  final String instructions;
-
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.instructions);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-
-        child: SizedBox(
-          height: 155,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              AspectRatio(
-                aspectRatio: 1.0,
-                child: thumbnail,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20.0, 0.0, 2.0, 0.0),
-                  child: _ArticleDescription(
-                    title: title,
-                    subtitle: subtitle,
+                                await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                              },
+                            ),
+                          ]
+                        ),
+                      ),
                   ),
-                ),
-              )
-            ],
-          ),
+                  Container(
+                    height: height,
+                    width: width,
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
+                    child: SingleChildScrollView(
+                      child: Column(
+                          children: [
+                            SizedBox(height: 40.0,),
+                            TextField(
+                              controller: onlyPreferencesController,
+                              decoration: InputDecoration(
+                                hintText: 'Search recipes',
+                                prefixIcon: Icon(Icons.search),
+                                isDense: true,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                ),
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                            SizedBox(height: 40.0,),
+                            Text(
+                              "Preferences",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            SizedBox(height: 20.0,),
+                            isPreferenceLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Card(
+                                    child: (new ListView(
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      children: preferenceMap.keys.map((String key) {
+                                        return new CheckboxListTile(
+                                          title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                          value: preferenceMap[key],
+                                          activeColor: Colors.green,
+                                          checkColor: Colors.white,
+                                          onChanged: (bool value) {
+                                            setState(() {
+                                              preferenceMap[key] = value;
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    ))
+                                )
+                            ),
+                            SizedBox(height: 50.0,),
+                            isLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : new RaisedButton(
+                              child: Text('Search'),
+                              color: Colors.orange[600],
+                              textColor: Colors.white,
+                              onPressed: () async {
+                                setState(() {
+                                  isLoading = true; //Data is loading
+                                });
+
+                                clearResults();
+
+                                await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                              },
+                            ),
+                          ]
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: height,
+                    width: width,
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
+                    child: SingleChildScrollView(
+                      child: Column(
+                          children: [
+                            SizedBox(height: 40.0,),
+                            isIngredientLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : new TextField(
+                              controller: onlyIngredientsController,
+                              decoration: InputDecoration(
+                                hintText: 'Search ingredients',
+                                prefixIcon: Icon(Icons.search),
+                                isDense: true,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                ),
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                            SizedBox(height: 25.0,),
+                            isIngredientErr ? Center(
+                              child: Text(
+                                "Error: Please enter an ingredient",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.red[400],
+                                ),
+                              )
+                            ) : SizedBox(height: 21.0,),
+                            SizedBox(height: 25.0,),
+                            isLoading ? Center(
+                              child: CircularProgressIndicator(),
+                            ) : new RaisedButton(
+                              child: Text('Search'),
+                              color: Colors.orange[600],
+                              textColor: Colors.white,
+                              onPressed: () async {
+                                setState(() {
+                                  isLoading = true; //Data is loading
+                                });
+
+                                clearResults();
+
+                                if(onlyIngredientsController.text.trim() == ''){
+                                  isIngredientErr = true;
+                                  setState(() {
+                                    isLoading = false; //Data is loading
+                                  });
+                                } else {
+                                  isIngredientErr = false;
+                                  await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                }
+
+                              },
+                            ),
+                          ]
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+            )
+          ],
         ),
       ),
-    );
-  }
-}
-
-class ResultsState extends StatefulWidget {
-  @override
-  ResultsWidget createState() =>
-      new ResultsWidget();
-}
-
-
-class ResultsWidget extends State<ResultsState> {
-
-  //ResultsWidget({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(10.0),
-      children: <Widget>[
-        CustomListItemTwo(
-          thumbnail: Container(
-            child: Image.asset('assets/Pressure-Cooker Italian Beef Sandwiches.jpg',fit: BoxFit.fill,),
-          ),
-          title: 'Pressure-Cooker Italian Beef Sandwiches',
-          subtitle: 'Ingredients: 16 ounces sliced pepperoncini undrained, 14 1/2 ounces diced tomatoes undrained, 1 medium onion chopped, 1/2 cup water, 2 packages Italian salad dressing mix, 1 teaspoon dried oregano, 1/2 teaspoon garlic powder, 1 beef rump roast or bottom round roast (3 to 4 pounds), 12 Italian rolls split',
-          instructions: '1. In a bowl, mix the first 7 ingredients. Halve roast; place in a 6-qt. electric pressure cooker. Pour pepperoncini mixture over top. Lock lid; close pressure-release valve. Adjust to pressure-cook on high for 60 minutes. Let pressure release naturally. A thermometer inserted into beef should read at least 145°. \n2. Remove roast; cool slightly. Skim fat from cooking juices. Shred beef with 2 forks. Return beef and cooking juices to pressure cooker; heat through. Serve on rolls.',
-        ),
-        CustomListItemTwo(
-          thumbnail: Container(
-            child: Image.asset('assets/glazed salmon.jpg',fit: BoxFit.fill,),
-          ),
-          title: 'Honey Garlic Glazed Salmon',
-          subtitle: 'Ingredients: 1/4 c.soy sauce, 1/3 c.honey, 2 tbsp.lemon juice, 1 tsp.red pepper flakes, 3 tbsp.extra-virgin olive oil divide, 4 6-oz. salmon fillets, patted dry with a paper towel, Kosher salt, Freshly ground black pepper, 3 cloves garlic mince, 1 lemon sliced into rounds',
-          instructions: '1. In a medium bowl, whisk together honey, soy sauce, lemon juice and red pepper flakes. \n2.In a large skillet over medium-high heat, heat two tablespoons oil. When oil is hot but not smoking, add salmon skin-side up and season with salt and pepper. Cook salmon until deeply golden, about 6 minutes, then flip over and add remaining tablespoon of oil.\n3. Add garlic to the skillet and cook until fragrant, 1 minute. Add the honey mixture and sliced lemons and cook until sauce is reduced by about 1/3. Baste salmon with the sauce.\n4. Garnish with sliced lemon and serve.',
-        ),
-      ],
-
     );
   }
 

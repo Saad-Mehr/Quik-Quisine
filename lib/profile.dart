@@ -8,12 +8,12 @@ import 'package:quikquisine490/user.dart';
 //test token KV7aSwEfxti-X2Mr6LxJ
 
 Map<String, String> get headers => {
-  "X-User-Email": UserList[2],
-  "X-User-Token": UserList[3],
+  "X-User-Email": UserList[0],
+  "X-User-Token": UserList[2],
 };
 
 Future<List> getData() async{
-  String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[0].toString();
+  String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString();
   http.Response response = await http.get(url,headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];

@@ -28,8 +28,6 @@ Future<List> addToList(int id) async{
   jsonbody["user"] = body;
   String msg = json.encode(jsonbody);
   http.Response response = await http.post(url,headers: headers,body: msg);
-  var parsedJson = jsonDecode(response.body);
-  var data = parsedJson['data'];
   print("Add to list code: " + response.statusCode.toString());
 }
 
@@ -39,7 +37,6 @@ Future retrieveList() async{
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   mealPlannerRecipes = data;
-
   //print('mealPlanner data is ------------------------ ' + mealPlannerRecipes.toString());
   //print('mealPlanner[0] data is ------------------------ ' + mealPlannerRecipes[0].toString());
   //print('mealPlannerRecipes images are: ------------------------- ' + mealPlannerRecipes[0]['get_image_url'].toString());
@@ -75,7 +72,6 @@ Future getRecipes() async{
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   totalRecipes = data;
-
   await sortAllIngredients();
 }
 
@@ -100,7 +96,6 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
             onPressed: () {
               addToList(id);
               retrieveList();
-              //retrieveList();
             },
           ),
         ],
@@ -127,10 +122,8 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
           FlatButton(
             child: Text('Remove from List'),
             onPressed: () {
-              //addToList(id);
               deleteList(id);
               retrieveList();
-              //retrieveList();
             },
           ),
         ],
@@ -492,7 +485,7 @@ class MyMealPlanner extends StatelessWidget {
       itemBuilder: (BuildContext context,index){
         return CustomListItemThree(
           thumbnail: Container(
-            child: Image.asset('assets/' + mealPlannerRecipes[index]['name'] + '.jpg',fit: BoxFit.fill,),
+            child: Image.network(mealPlannerRecipes[index]['get_image_url'], fit: BoxFit.fill,),
           ),
           title: mealPlannerRecipes[index]['name'],
           subtitle: mealPlannerRecipes[index]['description'],

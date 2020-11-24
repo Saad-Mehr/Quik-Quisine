@@ -89,6 +89,8 @@ Future<int> recipeSearch(String urlParams) async {
 
   http.Response response = await http.get(searchURL, headers: headers);
 
+  print('searchURL is now: $searchURL');
+
   if (response.statusCode == 200) {
 
     http.Response searchResponse = await http.get(searchURL, headers: headers);

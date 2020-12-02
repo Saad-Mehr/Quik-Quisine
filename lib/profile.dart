@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:quikquisine490/calendar.dart';
 import 'dart:convert';
 import 'dart:async';
-
+import 'editProfile.dart';
 import 'package:quikquisine490/user.dart';
+import 'HomePage.dart' as homepage;
 //test email test@gmail.com
 //test token KV7aSwEfxti-X2Mr6LxJ
 
@@ -20,6 +22,7 @@ Future<List> getData() async{
   List temp = [data['email'],data['username'],data['first_name'],data['last_name']];
   return temp;
 }
+
 
 class profile extends StatefulWidget {
   @override
@@ -48,7 +51,10 @@ class getUserInfoState extends State<profile> {
            title: Text('Profile'),
              leading: IconButton(
                icon: Icon(Icons.arrow_back),
-               onPressed: () => Navigator.pop(context, false),
+               onPressed: () => Navigator.push(
+                 context,
+                 MaterialPageRoute(builder: (context) => homepage.HomePage()),
+               ),
              )
          ),
          body: Center(
@@ -102,6 +108,16 @@ class getUserInfoState extends State<profile> {
                          fontSize: 24.0,
                        )),
 
+                     ),
+                     Container(
+                       margin: EdgeInsets.all(25),
+                       child: FlatButton(
+                         child: Text('Edit', style: TextStyle(fontSize: 20.0),),
+                         onPressed: () {Navigator.push(
+                           context,
+                           MaterialPageRoute(builder: (context) => editProfile()),
+                         );},
+                       ),
                      ),
                    ],
                  );

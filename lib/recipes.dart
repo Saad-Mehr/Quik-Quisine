@@ -96,6 +96,7 @@ Future _ackAlert(BuildContext context,Widget thumbnail, String title, String sub
             onPressed: () {
               addToList(id);
               retrieveList();
+              Navigator.of(context).pop();
             },
           ),
         ],
@@ -124,6 +125,7 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
             onPressed: () {
               deleteList(id);
               retrieveList();
+              Navigator.of(context).pop();
             },
           ),
         ],
@@ -310,7 +312,7 @@ class _ArticleDescription extends StatelessWidget {
                 ),
               ),
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
-              Text(
+             /* Text(
                 '$ingredients',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -318,7 +320,7 @@ class _ArticleDescription extends StatelessWidget {
                   fontSize: 12.0,
                   color: Colors.black54,
                 ),
-              ),
+              ),*/
             ],
           ),
         ),

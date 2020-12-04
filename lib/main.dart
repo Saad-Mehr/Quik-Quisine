@@ -49,7 +49,7 @@ class _MyappState extends State<Myapp> {
               Container(
                 width: width,
                 height: height*0.45,
-                child: Image.asset('assets/login_food_icon.png',fit: BoxFit.fill,),
+                child: Image.asset('assets/Quik Quisine Logo.png',fit: BoxFit.fill,),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

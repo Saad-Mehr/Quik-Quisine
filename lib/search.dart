@@ -40,6 +40,19 @@ class SearchPage extends StatelessWidget {
         appBar: AppBar(
             title: const Text(_title),
             backgroundColor: Colors.deepOrangeAccent,
+            actions: <Widget>[
+              PopupMenuButton<String>(
+                onSelected: optionAction,
+                itemBuilder: (BuildContext context){
+                  return MenuOptions.options.map((String option){
+                    return PopupMenuItem<String>(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList();
+                },
+              )
+            ],
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, false),
@@ -50,6 +63,37 @@ class SearchPage extends StatelessWidget {
       ),
     );
   }
+
+  void optionAction(String choice){
+    if(choice == MenuOptions.Recipes){
+      print('Recipes');
+    } else if(choice == MenuOptions.Search){
+      print('Search');
+    } else if(choice == MenuOptions.MealPlanner){
+      print('MealPlanner');
+    } else if(choice == MenuOptions.Profile){
+      print('Profile');
+    } else if(choice == MenuOptions.Logout){
+      print('Logout');
+    }
+  }
+
+}
+
+class MenuOptions {
+  static const String Recipes = 'Recipes';
+  static const String Search = 'Search';
+  static const String MealPlanner = 'MealPlanner';
+  static const String Profile = 'Profile';
+  static const String Logout = 'Logout';
+
+  static const List<String> options = <String>[
+    Recipes,
+    Search,
+    MealPlanner,
+    Profile,
+    Logout
+  ];
 }
 
 class SearchWidget extends StatefulWidget {

@@ -42,15 +42,15 @@ class SearchPage extends StatelessWidget {
             backgroundColor: Colors.deepOrangeAccent,
             actions: <Widget>[
               PopupMenuButton<String>(
-                onSelected: optionAction,
-                itemBuilder: (BuildContext context){
-                  return MenuOptions.options.map((String option){
-                    return PopupMenuItem<String>(
-                      value: option,
-                      child: Text(option),
-                    );
-                  }).toList();
-                },
+                  onSelected: (option) => optionAction(option, context),
+                  itemBuilder: (BuildContext context) {
+                    return MenuOptions.options.map((String option){
+                      return PopupMenuItem<String>(
+                        value: option,
+                        child: Text(option),
+                      );
+                    }).toList();
+                }
               )
             ],
             leading: IconButton(
@@ -64,8 +64,17 @@ class SearchPage extends StatelessWidget {
     );
   }
 
-  void optionAction(String choice){
-    if(choice == MenuOptions.Recipes){
+  void optionAction(String option, BuildContext context) {
+    setState() {
+      if (option == MenuOptions.Logout) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RecipePage()),
+        );
+      }
+    }
+
+    /*if(choice == MenuOptions.Recipes){
       print('Recipes');
     } else if(choice == MenuOptions.Search){
       print('Search');
@@ -75,7 +84,7 @@ class SearchPage extends StatelessWidget {
       print('Profile');
     } else if(choice == MenuOptions.Logout){
       print('Logout');
-    }
+    }*/
   }
 
 }
@@ -94,6 +103,35 @@ class MenuOptions {
     Profile,
     Logout
   ];
+
+  Widget _myListView(BuildContext context) {
+    return ListView(
+      children: <Widget>[
+        ListTile(
+          title: Text('Recipes'),
+          trailing: Icon(Icons.keyboard_arrow_right),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RecipePage()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text('Search'),
+          trailing: Icon(Icons.keyboard_arrow_right),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SearchPage()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+
 }
 
 class SearchWidget extends StatefulWidget {

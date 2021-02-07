@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
+import 'calendar.dart';
+import 'main.dart';
 import 'mysql.dart';
+import 'profile.dart';
+
 
 var searchTerm = "";
 final String searchTypeTextAll = "All";
@@ -65,26 +69,37 @@ class SearchPage extends StatelessWidget {
   }
 
   void optionAction(String option, BuildContext context) {
-    setState() {
-      if (option == MenuOptions.Logout) {
+
+      if (option == MenuOptions.Recipes) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => RecipePage()),
         );
       }
-    }
-
-    /*if(choice == MenuOptions.Recipes){
-      print('Recipes');
-    } else if(choice == MenuOptions.Search){
-      print('Search');
-    } else if(choice == MenuOptions.MealPlanner){
-      print('MealPlanner');
-    } else if(choice == MenuOptions.Profile){
-      print('Profile');
-    } else if(choice == MenuOptions.Logout){
-      print('Logout');
-    }*/
+      else if (option == MenuOptions.Search) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchPage()),
+        );
+      }
+      else if (option == MenuOptions.MealPlanner) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyApp()),
+        );
+      }
+      else if (option == MenuOptions.Profile) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => profile()),
+        );
+      }
+      else if (option == MenuOptions.Logout) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Myapp()),
+        );
+      }
   }
 
 }

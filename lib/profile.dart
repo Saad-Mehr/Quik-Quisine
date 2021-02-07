@@ -51,9 +51,9 @@ class getUserInfoState extends State<profile> {
            title: Text('Profile'),
              leading: IconButton(
                icon: Icon(Icons.arrow_back),
-               onPressed: () => Navigator.push(
+               onPressed: () => Navigator.pop(
                  context,
-                 MaterialPageRoute(builder: (context) => homepage.HomePage()),
+                 false
                ),
              )
          ),

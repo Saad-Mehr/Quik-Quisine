@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
+import 'calendar.dart';
+import 'main.dart';
 import 'mysql.dart';
+import 'profile.dart';
+
 
 var searchTerm = "";
 final String searchTypeTextAll = "All";
@@ -40,6 +44,19 @@ class SearchPage extends StatelessWidget {
         appBar: AppBar(
             title: const Text(_title),
             backgroundColor: Colors.deepOrangeAccent,
+            actions: <Widget>[
+              PopupMenuButton<String>(
+                  onSelected: (option) => optionAction(option, context),
+                  itemBuilder: (BuildContext context) {
+                    return MenuOptions.options.map((String option){
+                      return PopupMenuItem<String>(
+                        value: option,
+                        child: Text(option),
+                      );
+                    }).toList();
+                }
+              )
+            ],
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, false),
@@ -50,6 +67,58 @@ class SearchPage extends StatelessWidget {
       ),
     );
   }
+
+  void optionAction(String option, BuildContext context) {
+
+      if (option == MenuOptions.Recipes) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RecipePage()),
+        );
+      }
+      else if (option == MenuOptions.Search) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchPage()),
+        );
+      }
+      else if (option == MenuOptions.MealPlanner) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyApp()),
+        );
+      }
+      else if (option == MenuOptions.Profile) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => profile()),
+        );
+      }
+      else if (option == MenuOptions.Logout) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Myapp()),
+        );
+      }
+  }
+
+}
+
+class MenuOptions {
+  static const String Recipes = 'Recipes';
+  static const String Search = 'Search';
+  static const String MealPlanner = 'MealPlanner';
+  static const String Profile = 'Profile';
+  static const String Logout = 'Logout';
+
+  static const List<String> options = <String>[
+    Recipes,
+    Search,
+    MealPlanner,
+    Profile,
+    Logout
+  ];
+  
 }
 
 class SearchWidget extends StatefulWidget {

@@ -118,35 +118,7 @@ class MenuOptions {
     Profile,
     Logout
   ];
-
-  Widget _myListView(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        ListTile(
-          title: Text('Recipes'),
-          trailing: Icon(Icons.keyboard_arrow_right),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RecipePage()),
-            );
-          },
-        ),
-        ListTile(
-          title: Text('Search'),
-          trailing: Icon(Icons.keyboard_arrow_right),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SearchPage()),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-
+  
 }
 
 class SearchWidget extends StatefulWidget {

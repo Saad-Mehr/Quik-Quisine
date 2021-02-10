@@ -34,7 +34,7 @@ List<Map<dynamic,dynamic>> ingredientsList = [];
 List<dynamic> searchedIngredients = [];
 
 class SearchPage extends StatelessWidget {
-  static const String _title = 'Search';
+  static const String _title = 'Search Recipes';
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class MenuOptions {
     Profile,
     Logout
   ];
-  
+
 }
 
 class SearchWidget extends StatefulWidget {
@@ -492,10 +492,19 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                       child: Column(
                         children: [
                           SizedBox(height: 40.0,),
+                          Text(
+                            "Input name (optional)",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
                           TextField(
                             controller: recipesAllController,
                             decoration: InputDecoration(
-                              hintText: 'Search recipes',
+                              hintText: 'Search recipe name',
                               prefixIcon: Icon(Icons.search),
                               isDense: true,
                               enabledBorder: OutlineInputBorder(
@@ -507,7 +516,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                           ),
                           SizedBox(height: 40.0,),
                           Text(
-                            "Categories",
+                            "Check Categories",
                             textAlign: TextAlign.left,
                             style: TextStyle(
                               fontSize: 18,
@@ -541,7 +550,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                           ),
                           SizedBox(height: 40.0,),
                           Text(
-                            "Preferences",
+                            "Check Preferences",
                             textAlign: TextAlign.left,
                             style: TextStyle(
                               fontSize: 18,
@@ -575,7 +584,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                           ),
                           SizedBox(height: 40.0,),
                           Text(
-                            "Ingredients",
+                            "Input Ingredients",
                             textAlign: TextAlign.left,
                             style: TextStyle(
                               fontSize: 18,

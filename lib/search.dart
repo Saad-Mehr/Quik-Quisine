@@ -19,6 +19,7 @@ List categoryIDs = [];
 List preferenceIDs = [];
 bool isAnyCategoryChecked = false;
 bool isAnyPreferenceChecked = false;
+bool isIngredientSearch = false;
 var checkedCategories = [];
 var checkedPreferences = [];
 List<dynamic> recipeIDs = [];
@@ -29,9 +30,12 @@ List<dynamic> recipeIngredients = [];
 List<dynamic> recipePicURLs = [];
 List<dynamic> recipePrep = [];
 List<dynamic> sortedRecipeIng = [];
+List<dynamic> sortedRecipeIngNames = [];
 List<dynamic> filteredSortedIng = [];
 List<Map<dynamic,dynamic>> ingredientsList = [];
-List<dynamic> searchedIngredients = [];
+List<dynamic> searchedIngIDs = [];
+List<dynamic> searchedIngNames = [];
+List<dynamic> missingIngredients = [];
 
 class SearchPage extends StatelessWidget {
   static const String _title = 'Search Recipes';
@@ -155,9 +159,12 @@ void clearRecipeList(){
   preferenceIDs.clear();
   checkedCategories.clear();
   checkedPreferences.clear();
-  searchedIngredients.clear();
+  searchedIngIDs.clear();
+  searchedIngNames.clear();
+  missingIngredients.clear();
   isAnyCategoryChecked = false;
   isAnyPreferenceChecked = false;
+  isIngredientSearch = false;
 }
 
 class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixin {
@@ -166,7 +173,10 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   bool isCategoryLoading = false;
   bool isPreferenceLoading = false;
   bool isIngredientLoading = false;
+  bool isAllErr = false;
   bool isIngredientErr = false;
+  bool isCatChecked = false;
+  bool isPrefChecked = false;
   Map<String, bool> categoryMap = {};
   Map<String, bool> preferenceMap = {};
   var db = new Mysql();
@@ -205,33 +215,55 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
   getIngredientIds(String ingParam){
 
-    searchedIngredients = ingParam.split(',');
+    searchedIngIDs = ingParam.split(',');
 
-    for(int i = 0; i < searchedIngredients.length; i++){
+    for(int i = 0; i < searchedIngIDs.length; i++){
       for(int j = 0; j < ingredientsList.length; j++){
-        if(ingredientsList[j]['name'] == searchedIngredients[i]){
+        if(ingredientsList[j]['name'] == searchedIngIDs[i]){
 
-          searchedIngredients[i] = ingredientsList[j]['id'].toString();
+          searchedIngNames.add(ingredientsList[j]['name']);
+          searchedIngIDs[i] = ingredientsList[j]['id'].toString();
         }
       }
     }
 
-    ingParam = searchedIngredients.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+    ingParam = searchedIngIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
     return ingParam;
   }
 
   Future sortSearchedIngredients() async {
 
     sortedRecipeIng.length = recipeIngredients.length;
+    sortedRecipeIngNames.length = recipeIngredients.length;
 
     for(int i = 0; i < recipeIngredients.length; i++){
+
       sortedRecipeIng[i] = [];
+      sortedRecipeIngNames[i] = [];
       for(int j = 0; j < recipeIngredients[i].length; j++){
 
         sortedRecipeIng[i].add("${recipeIngredients[i][j]['ingredient_qty']} ${recipeIngredients[i][j]['name']}\n");
+        sortedRecipeIngNames[i].add("${recipeIngredients[i][j]['name']}");
       }
+
       filteredSortedIng.add(sortedRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
     }
+
+    List<dynamic> tempArr = sortedRecipeIngNames;
+
+    for(int i = 0; i < tempArr.length; i++) {
+
+      tempArr[i].removeWhere((element) => searchedIngNames.contains(element));
+
+      if( tempArr[i].isEmpty ) {
+
+        missingIngredients.add("You have all the ingredients!");
+      } else {
+
+        missingIngredients.add(tempArr[i]);
+      }
+    }
+
   }
 
   Future metaSearch(String searchType, String searchText, String ingredientText) async {
@@ -541,6 +573,11 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                         onChanged: (bool value) {
                                           setState(() {
                                             categoryMap[key] = value;
+                                            if(categoryMap.values.contains(true)) {
+                                              isCatChecked = true;
+                                            } else {
+                                              isCatChecked = false;
+                                            }
                                           });
                                         },
                                       );
@@ -575,6 +612,11 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                         onChanged: (bool value) {
                                           setState(() {
                                             preferenceMap[key] = value;
+                                            if(preferenceMap.values.contains(true)) {
+                                              isPrefChecked = true;
+                                            } else {
+                                              isPrefChecked = false;
+                                            }
                                           });
                                         },
                                       );
@@ -607,7 +649,18 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               border: const OutlineInputBorder(),
                             ),
                           ),
-                          SizedBox(height: 50.0,),
+                          SizedBox(height: 25.0,),
+                          isAllErr ? Center(
+                              child: Text(
+                                "Error: Please check at least 1 category/preference box and enter at least 1 ingredient.",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.red[400],
+                                ),
+                              )
+                          ) : SizedBox(height: 21.0,),
+                          SizedBox(height: 25.0,),
                           isLoading ? Center(
                             child: CircularProgressIndicator(),
                           ) : new RaisedButton(
@@ -619,10 +672,20 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 isLoading = true; //Data is loading
                               });
 
-                              clearResults();
+                              if( ( ingredientsAllController.text.trim() == '' ) || ( isCatChecked == false ) || ( isPrefChecked == false )){
 
-                              await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                isAllErr = true;
+                                setState(() {
+                                  isLoading = false; //Data is loading
+                                });
+                              } else {
+
+                                isAllErr = false;
+                                clearResults();
+                                isIngredientSearch = true;
+                                await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                              }
                             },
                           ),
                           SizedBox(height: 50.0,),
@@ -836,12 +899,15 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 if(onlyIngredientsController.text.trim() == ''){
+
                                   isIngredientErr = true;
                                   setState(() {
                                     isLoading = false; //Data is loading
                                   });
                                 } else {
+
                                   isIngredientErr = false;
+                                  isIngredientSearch = true;
                                   await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
                                   Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
                                 }

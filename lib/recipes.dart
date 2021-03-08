@@ -242,17 +242,35 @@ class ResultsWidget extends StatelessWidget {
 
 List<Widget> getRecipeResults() {
 
-  for (int i = 0; i < recipeNames.length; i++) {
-    recipesResultsList.add(CustomListItemTwo(
-      thumbnail: Container(
-        child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
-      ),
-      title: recipeNames[i],
-      subtitle: 'Description: ${recipeDesc[i]}',
-      serving: 'Serving size: ${recipeServing[i]}',
-      ingredients: ' ${filteredSortedIng[i]}',
-      instructions: '${recipePrep[i]}',
-    ));
+  if(isIngredientSearch == true) {
+    for (int i = 0; i < recipeNames.length; i++) {
+      recipesResultsList.add(CustomListItemTwo(
+        thumbnail: Container(
+          child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
+        ),
+        title: recipeNames[i],
+        subtitle: 'Description: ${recipeDesc[i]}',
+        serving: 'Serving size: ${recipeServing[i]}',
+        ingredients: ' ${filteredSortedIng[i]}\n'
+            'Missing ingredients:\n ${missingIngredients[i].toString()
+            .replaceAll("[", "").replaceAll("]", "")
+            .replaceAll(",", "\n")}\n',
+        instructions: '${recipePrep[i]}',
+      ));
+    }
+  } else {
+    for (int i = 0; i < recipeNames.length; i++) {
+      recipesResultsList.add(CustomListItemTwo(
+        thumbnail: Container(
+          child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
+        ),
+        title: recipeNames[i],
+        subtitle: 'Description: ${recipeDesc[i]}',
+        serving: 'Serving size: ${recipeServing[i]}',
+        ingredients: ' ${filteredSortedIng[i]}',
+        instructions: '${recipePrep[i]}',
+      ));
+    }
   }
 
   if(resultNames.length == 0) {

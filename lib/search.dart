@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
+import 'package:quikquisine490/ingredient.dart';
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
 import 'package:quikquisine490/user.dart';
@@ -60,7 +61,7 @@ class SearchPage extends StatelessWidget {
                         child: Text(option),
                       );
                     }).toList();
-                }
+                  }
               )
             ],
             leading: IconButton(
@@ -76,42 +77,42 @@ class SearchPage extends StatelessWidget {
 
   void optionAction(String option, BuildContext context) {
 
-      if (option == MenuOptions.Recipes) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => RecipePage()),
-        );
-      }
-      else if (option == MenuOptions.Search) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SearchPage()),
-        );
-      }
-      else if (option == MenuOptions.MealPlanner) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MyApp()),
-        );
-      }
-      else if (option == MenuOptions.Profile) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => profile()),
-        );
-      }
-      else if (option == MenuOptions.MyIngredientList) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => UserIngredientList()),
-        );
-      }
-      else if (option == MenuOptions.Logout) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => Myapp()),
-        );
-      }
+    if (option == MenuOptions.Recipes) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => RecipePage()),
+      );
+    }
+    else if (option == MenuOptions.Search) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SearchPage()),
+      );
+    }
+    else if (option == MenuOptions.MealPlanner) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp()),
+      );
+    }
+    else if (option == MenuOptions.Profile) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => profile()),
+      );
+    }
+    else if (option == MenuOptions.MyIngredientList) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UserIngredientList()),
+      );
+    }
+    else if (option == MenuOptions.Logout) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Myapp()),
+      );
+    }
   }
 
 }
@@ -261,9 +262,19 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     List<dynamic> tempArr = sortedRecipeIngNames;
 
+    // retrieve the names of the user list of ingredients and store them in userIngredientNameList
+    List<dynamic> userIngredientNamesList = new List<dynamic>();
+
+    for(int i = 0; i < selectedIngredientList.length; i++){
+      userIngredientNamesList.add(selectedIngredientList[i].name);
+    }
+
     for(int i = 0; i < tempArr.length; i++) {
 
-      tempArr[i].removeWhere((element) => searchedIngNames.contains(element));
+      // check whether the user ingredient list is empty or not
+      if(userIngredientNamesList.isNotEmpty){
+        tempArr[i].removeWhere((element) => userIngredientNamesList.contains(element));
+      }
 
       if( tempArr[i].isEmpty ) {
 

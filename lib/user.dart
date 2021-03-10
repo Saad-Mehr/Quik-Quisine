@@ -4,6 +4,7 @@ import 'dart:async';
 
 
 List UserList = [];
+List userIngredientList = [];
 
 Future<int> LogIn(String email, String password) async{
   var resBody = {};
@@ -63,3 +64,7 @@ Future<int> SignUp(String UserName,String FirstName, String LastName, String ema
   else
     return null;
 }
+
+// Future<int> RetrieveUserIngredientList() async{
+//
+// }

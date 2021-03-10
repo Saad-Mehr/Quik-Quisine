@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'HomePage.dart';
 import 'main.dart';
 import 'user.dart';
+import 'userIngredientList.dart';
 
 class Second extends StatefulWidget {
   @override
@@ -119,7 +120,7 @@ class _SecondState extends State<Second> {
                           int response_code = await SignUp(_username.text, _first_name.text, _last_name.text, _email_controller.text, _password_controller.text, _password_confirm.text);
                           if (response_code == 200)
                           {
-                            Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
                           }
                         },
                       ),

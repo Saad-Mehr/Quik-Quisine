@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
+import 'package:quikquisine490/user.dart';
 import 'calendar.dart';
 import 'main.dart';
 import 'mysql.dart';
 import 'profile.dart';
+import 'userIngredientList.dart';
 
 
 var searchTerm = "";
@@ -98,6 +100,12 @@ class SearchPage extends StatelessWidget {
           MaterialPageRoute(builder: (context) => profile()),
         );
       }
+      else if (option == MenuOptions.MyIngredientList) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UserIngredientList()),
+        );
+      }
       else if (option == MenuOptions.Logout) {
         Navigator.push(
           context,
@@ -113,6 +121,7 @@ class MenuOptions {
   static const String Search = 'Search';
   static const String MealPlanner = 'MealPlanner';
   static const String Profile = 'Profile';
+  static const String MyIngredientList = 'My ingredients list';
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
@@ -120,6 +129,7 @@ class MenuOptions {
     Search,
     MealPlanner,
     Profile,
+    MyIngredientList,
     Logout
   ];
 

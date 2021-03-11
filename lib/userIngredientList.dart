@@ -117,6 +117,7 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                 },
                 key: key,
                 suggestions: ingredientList,
+                suggestionsAmount: 10,
               ),
               //this is where the list of ingredients is updated and displayed
               Expanded(

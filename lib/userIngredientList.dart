@@ -33,14 +33,16 @@ class IngredientListState extends State<InitiateIngredientList> {
   @override
   void initState() {
     clearIngredientAndExistingIngredientList();
-    _loadExistingIngredientsList();
     _loadAutoCompleteIngredientsList();
+    _loadExistingIngredientsList();
     super.initState();
-
   }
 
   void _loadExistingIngredientsList() async {
     await existingIngredients();
+    //once the existing user list is updated the set state is trigger to rebuild the page
+    setState((){
+    });
   }
   void _loadAutoCompleteIngredientsList() async {
     await ingredients();
@@ -48,7 +50,7 @@ class IngredientListState extends State<InitiateIngredientList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return AutocompleteSearch();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,88 +69,88 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
   Widget build(BuildContext context) {
     return Expanded(
         child: Column(
-        children: <Widget>[
-        searchTextField = AutoCompleteTextField<Ingredients>(
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16.0,
-            ),
-          decoration: InputDecoration(
-            suffixIcon: Container(
-              width: 85.0,
-              height: 60.0,
-              ),
-            contentPadding: EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 20.0),
-            filled: true,
-            hintText: "Search ingredient",
-            hintStyle: TextStyle(
-              color: Colors.black
-              ),
-            ),
-          itemBuilder: (context, item){
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(item.name,
-                  style: TextStyle(
-                      fontSize: 16.0
-                  ),),
-                Padding(
-                  padding: EdgeInsets.all(15.0),
+            children: <Widget>[
+              searchTextField = AutoCompleteTextField<Ingredients>(
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16.0,
                 ),
-              ],
-            );
-          },
-          itemFilter: (item, query) {
-            return item.name
-                .toLowerCase()
-                .startsWith(query.toLowerCase());
-          },
-          itemSorter: (a, b) {
-          return a.name.compareTo(b.name);
-          },
-          itemSubmitted: (item) {
-            setState(() {
-              searchTextField.textField.controller.text = item.name;
-              selectedIngredientList.add(item);
-            });
-          },
-          key: key,
-          suggestions: ingredientList,
-        ),
-          //this is where the list of ingredients is updated and displayed
-          Expanded(
-            child: ListView.builder(
-              itemCount: selectedIngredientList != null ? selectedIngredientList.length : 0,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(selectedIngredientList[index].name),
-                  trailing: IconButton(
-                    icon: Icon(
-                        Icons.delete,
-                        size: 25.0,
-                        color: Colors.red
-                    ),
-                    onPressed:(){
-                      // this is where we update the list when an ingredient is deleted
-                      setState(() {
-                        // show the message that the ingredient has been removed
-                        final snackBar = SnackBar(
-                          content: Text('Removed ' + selectedIngredientList[index].name),
-                        );
-                        // and use it to show a SnackBar.
-                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                        selectedIngredientList.removeWhere((ingredient) => ingredient.name == selectedIngredientList[index].name);
-                      }
+                decoration: InputDecoration(
+                  suffixIcon: Container(
+                    width: 85.0,
+                    height: 60.0,
+                  ),
+                  contentPadding: EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 20.0),
+                  filled: true,
+                  hintText: "Search ingredient",
+                  hintStyle: TextStyle(
+                      color: Colors.black
+                  ),
+                ),
+                itemBuilder: (context, item){
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(item.name,
+                        style: TextStyle(
+                            fontSize: 16.0
+                        ),),
+                      Padding(
+                        padding: EdgeInsets.all(15.0),
+                      ),
+                    ],
+                  );
+                },
+                itemFilter: (item, query) {
+                  return item.name
+                      .toLowerCase()
+                      .startsWith(query.toLowerCase());
+                },
+                itemSorter: (a, b) {
+                  return a.name.compareTo(b.name);
+                },
+                itemSubmitted: (item) {
+                  setState(() {
+                    searchTextField.textField.controller.text = item.name;
+                    selectedIngredientList.add(item);
+                  });
+                },
+                key: key,
+                suggestions: ingredientList,
+              ),
+              //this is where the list of ingredients is updated and displayed
+              Expanded(
+                  child: ListView.builder(
+                    itemCount: selectedIngredientList != null ? selectedIngredientList.length : 0,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(selectedIngredientList[index].name),
+                        trailing: IconButton(
+                          icon: Icon(
+                              Icons.delete,
+                              size: 25.0,
+                              color: Colors.red
+                          ),
+                          onPressed:(){
+                            // this is where we update the list when an ingredient is deleted
+                            setState(() {
+                              // show the message that the ingredient has been removed
+                              final snackBar = SnackBar(
+                                content: Text('Removed ' + selectedIngredientList[index].name),
+                              );
+                              // and use it to show a SnackBar.
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                              selectedIngredientList.removeWhere((ingredient) => ingredient.name == selectedIngredientList[index].name);
+                            }
+                            );
+                          },
+                        ),
                       );
                     },
-                  ),
-                );
-              },
-            )
-          )
-        ]
-      )
+                  )
+              )
+            ]
+        )
     );
   }
 }
@@ -174,7 +176,6 @@ class UserIngredientList extends StatelessWidget{
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            InitiateIngredientList(),
             Container(
               margin: EdgeInsets.all(20.0),
               padding: EdgeInsets.all(20),
@@ -186,7 +187,7 @@ class UserIngredientList extends StatelessWidget{
                 ),
               ),
             ),
-            AutocompleteSearch(),
+            InitiateIngredientList(),
             RaisedButton(
               child: Text('Save'),
               color: Color(0xffEE7B23),

@@ -4,7 +4,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'dart:async';
 import 'ingredient.dart';
 import 'search.dart';

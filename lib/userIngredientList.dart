@@ -4,6 +4,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:another_flushbar/flushbar.dart';
 import 'dart:async';
 import 'ingredient.dart';
 import 'search.dart';
@@ -137,6 +138,7 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                             setState(() {
                               // show the message that the ingredient has been removed
                               final snackBar = SnackBar(
+                                duration: const Duration(seconds: 1),
                                 content: Text('Removed ' + selectedIngredientList[index].name),
                               );
                               // and use it to show a SnackBar.
@@ -198,6 +200,11 @@ class UserIngredientList extends StatelessWidget{
                   if (response_code == 200)
                   {
                     Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
+                    Flushbar(
+                      message: "Saved successfully",
+                      duration:  Duration(seconds: 3),
+                      backgroundColor: Colors.green,
+                    )..show(context);
                   }
                 }
                 else{

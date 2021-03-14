@@ -14,6 +14,9 @@ List<dynamic> totalRecipes = new List();
 List<dynamic> sortedTotalRecipeIng = [];
 List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = new List();
+//bool searchedBySearchPage = false;
+String recipesPageTitle;
+
 Map<String, String> get headers => {
   "X-User-Email": UserList[0],
   "X-User-Token": UserList[2],
@@ -50,6 +53,7 @@ Future<List> deleteList(int id) async{
 }
 
 Future sortAllIngredients() async {
+  print("filteredSortedIng inside sort all ingredients is ---------------- " + filteredSortedIng.toString());
 
   sortedTotalRecipeIng.length = totalRecipes.length;
   for(int i = 0; i < totalRecipes.length; i++){
@@ -65,11 +69,22 @@ Future sortAllIngredients() async {
     filteredSortedTotal.add(sortedTotalRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
   }
 
+  print("filteredSortedIng inside sort all ingredients is ---------------- " + filteredSortedIng.toString());
+
+  /*print("sortedtotalrecipeing is ================= " + sortedTotalRecipeIng.toString());
+  print("filteredSortedTotal is ================= " + filteredSortedTotal.toString());
+  print("totalRecipes is ================= " + totalRecipes.toString());
+  print("totalRecipes length is ================= " + totalRecipes.length.toString());
+
+  print("reviews are : " + totalRecipes[0]['review'].toString());*/
+
 }
 
 Future getRecipes() async{
   sortedTotalRecipeIng.clear();
+  print("filteredSortedIng inside get recipes is ---------------- " + filteredSortedIng.toString());
   filteredSortedTotal.clear();
+  print("filteredSortedIng inside get recipes is ---------------- " + filteredSortedIng.toString());
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
@@ -158,7 +173,7 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
 }
 
 class RecipePage extends StatelessWidget {
-  static const String _title = 'Recipes';
+  String _title = recipesPageTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +182,7 @@ class RecipePage extends StatelessWidget {
       home: DefaultTabController(
           length: 2,
           child: Scaffold(
-              appBar: AppBar(title: const Text(_title),
+              appBar: AppBar(title: Text(_title),
                 leading: IconButton(icon:Icon(Icons.arrow_back),
                   onPressed:() => Navigator.pop(context, false),
                 ),
@@ -191,7 +206,7 @@ class RecipePage extends StatelessWidget {
 
 }
 
-class RecipeResultsPage extends StatelessWidget {
+/*class RecipeResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +259,7 @@ List<Widget> getRecipeResults() {
 
   if(isIngredientSearch == true) {
     for (int i = 0; i < recipeNames.length; i++) {
+
       recipesResultsList.add(CustomListItemTwo(
         thumbnail: Container(
           child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
@@ -256,7 +272,9 @@ List<Widget> getRecipeResults() {
             .replaceAll("[", "").replaceAll("]", "")
             .replaceAll(",", "\n")}\n',
         instructions: '${recipePrep[i]}',
+        //AverageRating: '${recipeRatings[i]}',
       ));
+
     }
   } else {
     for (int i = 0; i < recipeNames.length; i++) {
@@ -286,7 +304,7 @@ List<Widget> getRecipeResults() {
   }
 
   return recipesResultsList;
-}
+}*/
 
 void clearResults(){
   resultSearchTerm = "";
@@ -305,7 +323,8 @@ class _ArticleDescription extends StatelessWidget {
     this.serving,
     this.ingredients,
     this.id,
-    this.AverageRating
+    this.AverageRating,
+    this.review,
   }) : super(key: key);
 
   final String title;
@@ -315,6 +334,7 @@ class _ArticleDescription extends StatelessWidget {
   final String ingredients;
   final String id;
   double AverageRating;
+  final String review;
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +467,7 @@ class CustomListItemTwo extends StatelessWidget {
                     serving: serving,
                     ingredients: ingredients,
                     AverageRating: AverageRating,
+                    review: review,
                   ),
 
                 ),
@@ -508,6 +529,7 @@ class CustomListItemThree extends StatelessWidget {
                     serving: serving,
                     instructions: instructions,
                     AverageRating: AverageRating,
+                    review: review,
                   ),
                 ),
               )

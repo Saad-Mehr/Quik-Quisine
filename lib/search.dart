@@ -72,9 +72,12 @@ class SearchPage extends StatelessWidget {
     );
   }
 
-  void optionAction(String option, BuildContext context) {
+  Future<void> optionAction(String option, BuildContext context) async {
 
       if (option == MenuOptions.Recipes) {
+        await getRecipes();
+        //filteredSortedIng.clear();
+        recipesPageTitle = 'Recipes';
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => RecipePage()),
@@ -254,13 +257,16 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     for(int i = 0; i < tempArr.length; i++) {
 
       tempArr[i].removeWhere((element) => searchedIngNames.contains(element));
+      //missingIngredients.add("Missing ingredients:\n ");
 
       if( tempArr[i].isEmpty ) {
 
-        missingIngredients.add("You have all the ingredients!");
+        missingIngredients.add("Missing ingredients:\n " + "You have all the ingredients!");
       } else {
 
-        missingIngredients.add(tempArr[i]);
+        missingIngredients.add("Missing ingredients:\n" + tempArr[i].toString()
+            .replaceAll("[", "").replaceAll("]", "")
+            .replaceAll(",", "\n"));
       }
     }
 
@@ -273,6 +279,10 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     String prefParam = '';
     String categParam = '';
     String ingParam = '';
+    List<dynamic> tempRecipes = new List();
+    List<dynamic> tempIngList = new List();
+
+    await getRecipes();
 
     if(searchText != null && searchText.isNotEmpty){
 
@@ -358,7 +368,53 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     await sortSearchedIngredients();
 
+
+    tempIngList = filteredSortedIng;
+
     print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
+    print("tempIngList is ---------------- " + tempIngList.toString());
+
+    //filteredSortedIng = tempIngList;
+
+    print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
+    print("tempIngList is ---------------- " + tempIngList.toString());
+
+    for(int i = 0; i < recipeIDs.length; i++) {
+      for(int j = 0; j < totalRecipes.length; j++) {
+
+        if( recipeIDs[i] == totalRecipes[j]['id'] ) {
+          tempRecipes.add(totalRecipes[j]);
+        }
+      }
+    }
+
+    //print("~~~~~~~~~~~~~~~~ temp recipes are : " + tempRecipes[0]['review'].toString());
+    totalRecipes = tempRecipes;
+    if(searchType == searchTypeTextAll || searchType == searchTypeTextIng) {
+       // have to do navigation to the general recipes page but with only these recipes
+      //searchedBySearchPage = true;
+      print("filteredSortedIng is ~~~~~~~~~~~~~~~~~~~ " +
+          filteredSortedIng.toString());
+      print("missingIngredients is ~~~~~~~~~~~~~~~~~~~ " +
+          missingIngredients.toString());
+
+      //tempIngList = filteredSortedIng;
+
+      for (int i = 0; i < missingIngredients.length; i++) {
+        filteredSortedIng[i] += "\n ${missingIngredients[i]}\n";
+        print("filteredsorteding[" + i.toString() + "] is " + filteredSortedIng[i].toString());
+        //print("missingIngredients["+ i.toString() +"] is " + missingIngredients[i].toString());
+      }
+
+      print("filteredSortedIng is : " + filteredSortedIng.toString());
+
+      filteredSortedTotal = filteredSortedIng;
+      filteredSortedIng = tempIngList;
+
+      print("filteredsortedtotal is ========~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~===== " + filteredSortedTotal.toString());
+    }
+
+    recipesPageTitle = "Recipes found: " + totalRecipes.length.toString();
 
     setState(() {
       isLoading = false;
@@ -684,7 +740,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
                                 isIngredientSearch = true;
                                 await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               }
                             },
                           ),
@@ -764,7 +820,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               },
                             ),
                           ]
@@ -842,7 +898,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               },
                             ),
                           ]
@@ -909,7 +965,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
                                   await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                                 }
 
                               },

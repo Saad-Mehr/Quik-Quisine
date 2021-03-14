@@ -53,7 +53,6 @@ Future<List> deleteList(int id) async{
 }
 
 Future sortAllIngredients() async {
-  print("filteredSortedIng inside sort all ingredients is ---------------- " + filteredSortedIng.toString());
 
   sortedTotalRecipeIng.length = totalRecipes.length;
   for(int i = 0; i < totalRecipes.length; i++){
@@ -69,22 +68,31 @@ Future sortAllIngredients() async {
     filteredSortedTotal.add(sortedTotalRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
   }
 
-  print("filteredSortedIng inside sort all ingredients is ---------------- " + filteredSortedIng.toString());
+}
 
-  /*print("sortedtotalrecipeing is ================= " + sortedTotalRecipeIng.toString());
-  print("filteredSortedTotal is ================= " + filteredSortedTotal.toString());
-  print("totalRecipes is ================= " + totalRecipes.toString());
-  print("totalRecipes length is ================= " + totalRecipes.length.toString());
+Future getSearchIng() async {
+  sortedTotalRecipeIng.clear();
+  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
+  var parsedJson = jsonDecode(response.body);
+  var data = parsedJson['data'];
+  totalRecipes = data;
 
-  print("reviews are : " + totalRecipes[0]['review'].toString());*/
+  sortedTotalRecipeIng.length = totalRecipes.length;
+  for(int i = 0; i < totalRecipes.length; i++){
 
+    sortedTotalRecipeIng[i] = [];
+
+    for(int j = 0; j < totalRecipes[i]['list_of_ingredients'].length; j++){
+
+      sortedTotalRecipeIng[i].add("${totalRecipes[i]['list_of_ingredients'][j]['ingredient_qty']} "
+          "${totalRecipes[i]['list_of_ingredients'][j]['name']}\n");
+    }
+  }
 }
 
 Future getRecipes() async{
   sortedTotalRecipeIng.clear();
-  print("filteredSortedIng inside get recipes is ---------------- " + filteredSortedIng.toString());
   filteredSortedTotal.clear();
-  print("filteredSortedIng inside get recipes is ---------------- " + filteredSortedIng.toString());
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
@@ -183,6 +191,7 @@ class RecipePage extends StatelessWidget {
           length: 2,
           child: Scaffold(
               appBar: AppBar(title: Text(_title),
+                backgroundColor: Colors.teal[400],
                 leading: IconButton(icon:Icon(Icons.arrow_back),
                   onPressed:() => Navigator.pop(context, false),
                 ),

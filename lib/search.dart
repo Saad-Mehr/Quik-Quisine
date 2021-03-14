@@ -29,6 +29,8 @@ List<dynamic> recipeServing = [];
 List<dynamic> recipeIngredients = [];
 List<dynamic> recipePicURLs = [];
 List<dynamic> recipePrep = [];
+List<dynamic> recipeRate = [];
+List<dynamic> recipeReviews = [];
 List<dynamic> sortedRecipeIng = [];
 List<dynamic> sortedRecipeIngNames = [];
 List<dynamic> filteredSortedIng = [];
@@ -156,6 +158,8 @@ void clearRecipeList(){
   recipeIngredients.clear();
   recipePicURLs.clear();
   recipePrep.clear();
+  recipeRate.clear();
+  recipeReviews.clear();
   sortedRecipeIng = [];
   filteredSortedIng.clear();
   categoryIDs.clear();
@@ -257,14 +261,13 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     for(int i = 0; i < tempArr.length; i++) {
 
       tempArr[i].removeWhere((element) => searchedIngNames.contains(element));
-      //missingIngredients.add("Missing ingredients:\n ");
 
       if( tempArr[i].isEmpty ) {
 
         missingIngredients.add("Missing ingredients:\n " + "You have all the ingredients!");
       } else {
 
-        missingIngredients.add("Missing ingredients:\n" + tempArr[i].toString()
+        missingIngredients.add("Missing ingredients:\n " + tempArr[i].toString()
             .replaceAll("[", "").replaceAll("]", "")
             .replaceAll(",", "\n"));
       }
@@ -281,8 +284,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     String ingParam = '';
     List<dynamic> tempRecipes = new List();
     List<dynamic> tempIngList = new List();
-
-    await getRecipes();
 
     if(searchText != null && searchText.isNotEmpty){
 
@@ -358,6 +359,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     await recipeSearch(linkParams);
 
+    await getSearchIng();
+
     searchList.forEach((searchList) => recipeIDs.add(searchList['id']));
     searchList.forEach((searchList) => recipeNames.add(searchList['name']));
     searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
@@ -365,54 +368,32 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
     searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));
+    searchList.forEach((searchList) => recipeRate.add(searchList['AverageRating']));
+    searchList.forEach((searchList) => recipeReviews.add(searchList['review']));
 
     await sortSearchedIngredients();
 
-
     tempIngList = filteredSortedIng;
-
-    print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
-    print("tempIngList is ---------------- " + tempIngList.toString());
-
-    //filteredSortedIng = tempIngList;
-
-    print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
-    print("tempIngList is ---------------- " + tempIngList.toString());
 
     for(int i = 0; i < recipeIDs.length; i++) {
       for(int j = 0; j < totalRecipes.length; j++) {
-
         if( recipeIDs[i] == totalRecipes[j]['id'] ) {
           tempRecipes.add(totalRecipes[j]);
         }
       }
     }
 
-    //print("~~~~~~~~~~~~~~~~ temp recipes are : " + tempRecipes[0]['review'].toString());
     totalRecipes = tempRecipes;
+    tempIngList = filteredSortedIng;
+
     if(searchType == searchTypeTextAll || searchType == searchTypeTextIng) {
-       // have to do navigation to the general recipes page but with only these recipes
-      //searchedBySearchPage = true;
-      print("filteredSortedIng is ~~~~~~~~~~~~~~~~~~~ " +
-          filteredSortedIng.toString());
-      print("missingIngredients is ~~~~~~~~~~~~~~~~~~~ " +
-          missingIngredients.toString());
-
-      //tempIngList = filteredSortedIng;
-
       for (int i = 0; i < missingIngredients.length; i++) {
-        filteredSortedIng[i] += "\n ${missingIngredients[i]}\n";
-        print("filteredsorteding[" + i.toString() + "] is " + filteredSortedIng[i].toString());
-        //print("missingIngredients["+ i.toString() +"] is " + missingIngredients[i].toString());
+        filteredSortedIng[i] += "\n${missingIngredients[i]}\n";
       }
-
-      print("filteredSortedIng is : " + filteredSortedIng.toString());
-
-      filteredSortedTotal = filteredSortedIng;
-      filteredSortedIng = tempIngList;
-
-      print("filteredsortedtotal is ========~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~===== " + filteredSortedTotal.toString());
     }
+
+    filteredSortedTotal = filteredSortedIng;
+    filteredSortedIng = tempIngList;
 
     recipesPageTitle = "Recipes found: " + totalRecipes.length.toString();
 

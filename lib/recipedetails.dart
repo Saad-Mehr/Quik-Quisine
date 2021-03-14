@@ -183,19 +183,22 @@ class recipedetails extends StatelessWidget {
               children: [
                 thumbnail,
                 Text(title,textAlign: TextAlign.center,textScaleFactor: 2,),
+                Align(
+                  alignment: Alignment.center,
+                  child: SmoothStarRating(
+                    allowHalfRating: true,
+                    starCount: 5,
+                    rating: AverageRating,
+                    size: 20,
+                    color: Colors.amber,
+                    borderColor: Colors.black,
+                  ),
+                ),
+                Text(subtitle),
                 Text(serving),
                 Text(ingredients),
-                Text(instructions),
-                Text(subtitle),
-                SmoothStarRating(
-                  allowHalfRating: true,
-                  starCount: 5,
-                  rating: AverageRating,
-                  size: 20,
-                  color: Colors.amber,
-                  borderColor: Colors.black,
-                ),
-                Text("Reviews:\n"+review),
+                Text("Instructions:\n" + instructions),
+                Text("\nReviews:\n" + review),
                 if(review != 'No reviews yet.')
                   FlatButton(
                     child: Text('More Reviews'),

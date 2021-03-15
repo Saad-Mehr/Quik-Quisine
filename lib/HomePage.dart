@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quikquisine490/userIngredientList.dart';
 import 'calendar.dart';
 import 'main.dart';
 import 'search.dart';
@@ -79,6 +80,16 @@ Widget _myListView(BuildContext context) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => profile()),
+          );
+        },
+      ),
+      ListTile(
+        title: Text('My Ingredient List'),
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => UserIngredientList()),
           );
         },
       ),

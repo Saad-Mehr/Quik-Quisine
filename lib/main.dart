@@ -3,6 +3,7 @@ import 'HomePage.dart';
 import 'user.dart';
 import 'SignInPage.dart';
 import 'search.dart';
+import 'userIngredientList.dart';
 
 
 void main() {
@@ -123,7 +124,7 @@ class _MyappState extends State<Myapp> {
                             Navigator.of(context).push(new MaterialPageRoute(builder: (_)=>new HomePage()),).then((val)=>val);
                             //Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
                             setState((){isLoading = false;});
-                            Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
+                            Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
                           } else if ( response_code == 401 ) {
                             setState(() {
                               print('Status code is: $response_code');

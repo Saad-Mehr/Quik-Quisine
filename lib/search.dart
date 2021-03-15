@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
+import 'package:quikquisine490/ingredient.dart';
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
+import 'package:quikquisine490/user.dart';
 import 'calendar.dart';
 import 'main.dart';
 import 'mysql.dart';
 import 'profile.dart';
+import 'userIngredientList.dart';
 
 
 var searchTerm = "";
@@ -60,7 +63,7 @@ class SearchPage extends StatelessWidget {
                         child: Text(option),
                       );
                     }).toList();
-                }
+                  }
               )
             ],
             leading: IconButton(
@@ -118,6 +121,7 @@ class MenuOptions {
   static const String Search = 'Search';
   static const String MealPlanner = 'MealPlanner';
   static const String Profile = 'Profile';
+  static const String MyIngredientList = 'My ingredients list';
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
@@ -125,6 +129,7 @@ class MenuOptions {
     Search,
     MealPlanner,
     Profile,
+    MyIngredientList,
     Logout
   ];
 
@@ -258,9 +263,19 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     List<dynamic> tempArr = sortedRecipeIngNames;
 
+    // retrieve the names of the user list of ingredients and store them in userIngredientNameList
+    List<dynamic> userIngredientNamesList = new List<dynamic>();
+
+    for(int i = 0; i < selectedIngredientList.length; i++){
+      userIngredientNamesList.add(selectedIngredientList[i].name);
+    }
+
     for(int i = 0; i < tempArr.length; i++) {
 
-      tempArr[i].removeWhere((element) => searchedIngNames.contains(element));
+      // check whether the user ingredient list is empty or not
+      if(userIngredientNamesList.isNotEmpty){
+        tempArr[i].removeWhere((element) => userIngredientNamesList.contains(element));
+      }
 
       if( tempArr[i].isEmpty ) {
 

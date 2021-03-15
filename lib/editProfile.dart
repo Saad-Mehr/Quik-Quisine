@@ -4,8 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:quikquisine490/user.dart';
 import 'profile.dart';
-//test email test@gmail.com
-//test token KV7aSwEfxti-X2Mr6LxJ
+import 'package:another_flushbar/flushbar.dart';
 
 Map<String, String> get headers => {
   "X-User-Email": UserList[0],
@@ -66,6 +65,16 @@ class getNewUserInfo extends State<editProfile> {
         .size
         .height;
     return Scaffold(
+      appBar: AppBar(
+          title: Text('Edit Profile'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(
+                context,
+                false
+            ),
+          )
+      ),
       body: Container(
         height: height,
         width: width,
@@ -74,12 +83,127 @@ class getNewUserInfo extends State<editProfile> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              SizedBox(height: 15.0,),
+              FutureBuilder<List>(
+                future: user,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return SingleChildScrollView(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                  margin: EdgeInsets.only(left: 20, top:10, right: 20, bottom:0),
+                                  decoration: new BoxDecoration(
+                                    borderRadius: new BorderRadius.circular(16.0),
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child:CircleAvatar(
+                                      radius: 50.0,
+                                      backgroundImage:  ExactAssetImage('assets/noprofile.png'),
+                                    ),
+                                  )
+
+                              ),
+                              Container(
+                                  child: RaisedButton(
+                                      child: Text("Change Profile Photo"),
+                                      color: Colors.white,
+                                      textColor: Color(0xffEE7B23),
+                                      onPressed: (){
+
+                                      }
+                                  )
+                              ),
+                              SizedBox(height: 20.0),
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                padding: const EdgeInsets.all(12.0),
+                                color: Colors.grey[400],
+                                child: Text("Profile Info",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 35.0,
+                                    ),
+                                    textAlign: TextAlign.left
+
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey),
+                                ),
+                                child: Text( "Username: " + snapshot.data[1],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
+                                    ),
+                                    textAlign: TextAlign.left
+
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: Text( "First name: " + snapshot.data[2],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
+                                    ),
+                                    textAlign: TextAlign.left
+
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: Text( "Last name: " + snapshot.data[3],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
+                                    ),
+                                    textAlign: TextAlign.left
+
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width,
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                ),
+                                child: Text( "Email: " + snapshot.data[0],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 20.0,
+                                    ),
+                                    textAlign: TextAlign.left
+
+                                ),
+                              ),
+                              SizedBox(height: 20.0),
+                            ]
+                        )
+                    );
+                  }
+                  else if (snapshot.hasError) {
+                    return Text("${snapshot.error}");
+                  }
+                  return CircularProgressIndicator();
+                }
+              ),
               TextField(
                 controller: _username_controller,
                 decoration: InputDecoration(
                   hintText: 'UserName',
-                  suffixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
@@ -90,7 +214,6 @@ class getNewUserInfo extends State<editProfile> {
                 controller: _firstname_controller,
                 decoration: InputDecoration(
                   hintText: 'First Name',
-                  suffixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
@@ -101,7 +224,6 @@ class getNewUserInfo extends State<editProfile> {
                 controller: _lastname_controller,
                 decoration: InputDecoration(
                   hintText: 'Last Name',
-                  suffixIcon: Icon(Icons.email),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
@@ -109,8 +231,10 @@ class getNewUserInfo extends State<editProfile> {
               ),
                 Container(
                   margin: EdgeInsets.all(25),
-                  child: FlatButton(
-                    child: Text('Update', style: TextStyle(fontSize: 20.0),),
+                  child: RaisedButton(
+                    child: Text('Update',
+                      style: TextStyle(fontSize: 20.0),),
+                      color: Color(0xffEE7B23),
                     onPressed: () {
                       if(_username_controller.text!=''|| _firstname_controller.text!=''||_lastname_controller.text!='')
                       updateUserInfo(_username_controller.text, _firstname_controller.text,_lastname_controller.text);
@@ -118,6 +242,11 @@ class getNewUserInfo extends State<editProfile> {
                         context,
                         MaterialPageRoute(builder: (context) => profile()),
                       );
+                      Flushbar(
+                        message: "Updated successfully",
+                        duration:  Duration(seconds: 3),
+                        backgroundColor: Colors.green,
+                      )..show(context);
                     },
                   ),
                 ),

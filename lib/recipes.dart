@@ -14,6 +14,9 @@ List<dynamic> totalRecipes = new List();
 List<dynamic> sortedTotalRecipeIng = [];
 List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = new List();
+//bool searchedBySearchPage = false;
+String recipesPageTitle;
+
 Map<String, String> get headers => {
   "X-User-Email": UserList[0],
   "X-User-Token": UserList[2],
@@ -65,6 +68,26 @@ Future sortAllIngredients() async {
     filteredSortedTotal.add(sortedTotalRecipeIng[i].toString().replaceAll("[", "").replaceAll("]", "").replaceAll(",", ""));
   }
 
+}
+
+Future getSearchIng() async {
+  sortedTotalRecipeIng.clear();
+  http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
+  var parsedJson = jsonDecode(response.body);
+  var data = parsedJson['data'];
+  totalRecipes = data;
+
+  sortedTotalRecipeIng.length = totalRecipes.length;
+  for(int i = 0; i < totalRecipes.length; i++){
+
+    sortedTotalRecipeIng[i] = [];
+
+    for(int j = 0; j < totalRecipes[i]['list_of_ingredients'].length; j++){
+
+      sortedTotalRecipeIng[i].add("${totalRecipes[i]['list_of_ingredients'][j]['ingredient_qty']} "
+          "${totalRecipes[i]['list_of_ingredients'][j]['name']}\n");
+    }
+  }
 }
 
 Future getRecipes() async{
@@ -158,7 +181,7 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
 }
 
 class RecipePage extends StatelessWidget {
-  static const String _title = 'Recipes';
+  String _title = recipesPageTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +190,8 @@ class RecipePage extends StatelessWidget {
       home: DefaultTabController(
           length: 2,
           child: Scaffold(
-              appBar: AppBar(title: const Text(_title),
+              appBar: AppBar(title: Text(_title),
+                backgroundColor: Colors.teal[400],
                 leading: IconButton(icon:Icon(Icons.arrow_back),
                   onPressed:() => Navigator.pop(context, false),
                 ),
@@ -191,7 +215,7 @@ class RecipePage extends StatelessWidget {
 
 }
 
-class RecipeResultsPage extends StatelessWidget {
+/*class RecipeResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +268,7 @@ List<Widget> getRecipeResults() {
 
   if(isIngredientSearch == true) {
     for (int i = 0; i < recipeNames.length; i++) {
+
       recipesResultsList.add(CustomListItemTwo(
         thumbnail: Container(
           child: Image.network(recipePicURLs[i], fit: BoxFit.fill,),
@@ -256,7 +281,9 @@ List<Widget> getRecipeResults() {
             .replaceAll("[", "").replaceAll("]", "")
             .replaceAll(",", "\n")}\n',
         instructions: '${recipePrep[i]}',
+        //AverageRating: '${recipeRatings[i]}',
       ));
+
     }
   } else {
     for (int i = 0; i < recipeNames.length; i++) {
@@ -286,7 +313,7 @@ List<Widget> getRecipeResults() {
   }
 
   return recipesResultsList;
-}
+}*/
 
 void clearResults(){
   resultSearchTerm = "";
@@ -305,7 +332,8 @@ class _ArticleDescription extends StatelessWidget {
     this.serving,
     this.ingredients,
     this.id,
-    this.AverageRating
+    this.AverageRating,
+    this.review,
   }) : super(key: key);
 
   final String title;
@@ -315,6 +343,7 @@ class _ArticleDescription extends StatelessWidget {
   final String ingredients;
   final String id;
   double AverageRating;
+  final String review;
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +476,7 @@ class CustomListItemTwo extends StatelessWidget {
                     serving: serving,
                     ingredients: ingredients,
                     AverageRating: AverageRating,
+                    review: review,
                   ),
 
                 ),
@@ -508,6 +538,7 @@ class CustomListItemThree extends StatelessWidget {
                     serving: serving,
                     instructions: instructions,
                     AverageRating: AverageRating,
+                    review: review,
                   ),
                 ),
               )

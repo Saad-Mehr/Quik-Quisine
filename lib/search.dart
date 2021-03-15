@@ -32,6 +32,8 @@ List<dynamic> recipeServing = [];
 List<dynamic> recipeIngredients = [];
 List<dynamic> recipePicURLs = [];
 List<dynamic> recipePrep = [];
+List<dynamic> recipeRate = [];
+List<dynamic> recipeReviews = [];
 List<dynamic> sortedRecipeIng = [];
 List<dynamic> sortedRecipeIngNames = [];
 List<dynamic> filteredSortedIng = [];
@@ -75,44 +77,41 @@ class SearchPage extends StatelessWidget {
     );
   }
 
-  void optionAction(String option, BuildContext context) {
+  Future<void> optionAction(String option, BuildContext context) async {
 
-    if (option == MenuOptions.Recipes) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RecipePage()),
-      );
-    }
-    else if (option == MenuOptions.Search) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => SearchPage()),
-      );
-    }
-    else if (option == MenuOptions.MealPlanner) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MyApp()),
-      );
-    }
-    else if (option == MenuOptions.Profile) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => profile()),
-      );
-    }
-    else if (option == MenuOptions.MyIngredientList) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => UserIngredientList()),
-      );
-    }
-    else if (option == MenuOptions.Logout) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Myapp()),
-      );
-    }
+      if (option == MenuOptions.Recipes) {
+        await getRecipes();
+        //filteredSortedIng.clear();
+        recipesPageTitle = 'Recipes';
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RecipePage()),
+        );
+      }
+      else if (option == MenuOptions.Search) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchPage()),
+        );
+      }
+      else if (option == MenuOptions.MealPlanner) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MyApp()),
+        );
+      }
+      else if (option == MenuOptions.Profile) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => profile()),
+        );
+      }
+      else if (option == MenuOptions.Logout) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Myapp()),
+        );
+      }
   }
 
 }
@@ -164,6 +163,8 @@ void clearRecipeList(){
   recipeIngredients.clear();
   recipePicURLs.clear();
   recipePrep.clear();
+  recipeRate.clear();
+  recipeReviews.clear();
   sortedRecipeIng = [];
   filteredSortedIng.clear();
   categoryIDs.clear();
@@ -278,10 +279,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       if( tempArr[i].isEmpty ) {
 
-        missingIngredients.add("You have all the ingredients!");
+        missingIngredients.add("Missing ingredients:\n " + "You have all the ingredients!");
       } else {
 
-        missingIngredients.add(tempArr[i]);
+        missingIngredients.add("Missing ingredients:\n " + tempArr[i].toString()
+            .replaceAll("[", "").replaceAll("]", "")
+            .replaceAll(",", "\n"));
       }
     }
 
@@ -294,6 +297,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     String prefParam = '';
     String categParam = '';
     String ingParam = '';
+    List<dynamic> tempRecipes = new List();
+    List<dynamic> tempIngList = new List();
 
     if(searchText != null && searchText.isNotEmpty){
 
@@ -369,6 +374,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     await recipeSearch(linkParams);
 
+    await getSearchIng();
+
     searchList.forEach((searchList) => recipeIDs.add(searchList['id']));
     searchList.forEach((searchList) => recipeNames.add(searchList['name']));
     searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
@@ -376,10 +383,34 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
     searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));
+    searchList.forEach((searchList) => recipeRate.add(searchList['AverageRating']));
+    searchList.forEach((searchList) => recipeReviews.add(searchList['review']));
 
     await sortSearchedIngredients();
 
-    print("filteredSortedIng is ---------------- " + filteredSortedIng.toString());
+    tempIngList = filteredSortedIng;
+
+    for(int i = 0; i < recipeIDs.length; i++) {
+      for(int j = 0; j < totalRecipes.length; j++) {
+        if( recipeIDs[i] == totalRecipes[j]['id'] ) {
+          tempRecipes.add(totalRecipes[j]);
+        }
+      }
+    }
+
+    totalRecipes = tempRecipes;
+    tempIngList = filteredSortedIng;
+
+    if(searchType == searchTypeTextAll || searchType == searchTypeTextIng) {
+      for (int i = 0; i < missingIngredients.length; i++) {
+        filteredSortedIng[i] += "\n${missingIngredients[i]}\n";
+      }
+    }
+
+    filteredSortedTotal = filteredSortedIng;
+    filteredSortedIng = tempIngList;
+
+    recipesPageTitle = "Recipes found: " + totalRecipes.length.toString();
 
     setState(() {
       isLoading = false;
@@ -705,7 +736,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
                                 isIngredientSearch = true;
                                 await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               }
                             },
                           ),
@@ -785,7 +816,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               },
                             ),
                           ]
@@ -863,7 +894,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                               },
                             ),
                           ]
@@ -930,7 +961,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
                                   await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipeResultsPage()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
                                 }
 
                               },

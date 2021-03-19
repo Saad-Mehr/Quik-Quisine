@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:quikquisine490/profile.dart';
+import 'package:quikquisine490/recipes.dart';
+import 'calendar.dart';
+import 'main.dart';
 import 'user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -159,6 +163,27 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
 }
 ///////////////////////////////////////////////////////////////////////////////
 
+class MenuOptions {
+  static const String Recipes = 'Recipes';
+  static const String Search = 'Search';
+  static const String MealPlanner = 'MealPlanner';
+  static const String Profile = 'Profile';
+  static const String MyIngredientList = 'My ingredients list';
+  static const String Logout = 'Logout';
+
+  static const List<String> options = <String>[
+    Recipes,
+    Search,
+    MealPlanner,
+    Profile,
+    MyIngredientList,
+    Logout
+  ];
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 // returns the user ingredient list from db if it already exist
 
 
@@ -166,6 +191,49 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
 
 class UserIngredientList extends StatelessWidget{
   static const String _title = 'My Ingredients List';
+
+  Future<void> optionAction(String option, BuildContext context) async {
+
+    if (option == MenuOptions.Recipes) {
+      await getRecipes();
+      //filteredSortedIng.clear();
+      recipesPageTitle = 'Recipes';
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => RecipePage()),
+      );
+    }
+    else if (option == MenuOptions.Search) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SearchPage()),
+      );
+    }
+    else if (option == MenuOptions.MealPlanner) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MyApp()),
+      );
+    }
+    else if (option == MenuOptions.Profile) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => profile()),
+      );
+    }
+    else if (option == MenuOptions.MyIngredientList) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => UserIngredientList()),
+      );
+    }
+    else if (option == MenuOptions.Logout) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Myapp()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +243,19 @@ class UserIngredientList extends StatelessWidget{
       appBar: AppBar(
         title: Text(_title),
         backgroundColor: Colors.deepOrangeAccent,
+        actions: <Widget>[
+          PopupMenuButton<String>(
+              onSelected: (option) => optionAction(option, context),
+              itemBuilder: (BuildContext context) {
+                return MenuOptions.options.map((String option){
+                  return PopupMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  );
+                }).toList();
+              }
+          )
+        ],
       ),
       body: SafeArea(
         child: Column(

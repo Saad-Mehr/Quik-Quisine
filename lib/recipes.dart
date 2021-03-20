@@ -9,12 +9,11 @@ import 'recipedetails.dart';
 var resultSearchTerm;
 List<dynamic> resultNames;
 List<dynamic> resultDesc;
-List<Widget> recipesResultsList = List();
-List<dynamic> totalRecipes = new List();
+List<Widget> recipesResultsList = [];
+List<dynamic> totalRecipes = [];
 List<dynamic> sortedTotalRecipeIng = [];
 List<dynamic> filteredSortedTotal = [];
-List<dynamic> mealPlannerRecipes = new List();
-//bool searchedBySearchPage = false;
+List<dynamic> mealPlannerRecipes = [];
 String recipesPageTitle;
 
 Map<String, String> get headers => {

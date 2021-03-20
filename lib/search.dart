@@ -41,6 +41,8 @@ List<Map<dynamic,dynamic>> ingredientsList = [];
 List<dynamic> searchedIngIDs = [];
 List<dynamic> searchedIngNames = [];
 List<dynamic> missingIngredients = [];
+// used for storing user's list of ingredients
+List<dynamic> userIngredientNamesList = [];
 
 class SearchPage extends StatelessWidget {
   static const String _title = 'Search Recipes';
@@ -104,6 +106,12 @@ class SearchPage extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => profile()),
+        );
+      }
+      else if (option == MenuOptions.MyIngredientList) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UserIngredientList()),
         );
       }
       else if (option == MenuOptions.Logout) {
@@ -185,10 +193,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   bool isCategoryLoading = false;
   bool isPreferenceLoading = false;
   bool isIngredientLoading = false;
-  bool isAllErr = false;
-  bool isIngredientErr = false;
   bool isCatChecked = false;
   bool isPrefChecked = false;
+  bool isUserIngListChecked = false;
+  bool isAllErr = false;
+  bool isIngredientErr = false;
+  String errMsg = "";
   Map<String, bool> categoryMap = {};
   Map<String, bool> preferenceMap = {};
   var db = new Mysql();
@@ -263,13 +273,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     List<dynamic> tempArr = sortedRecipeIngNames;
 
-    // retrieve the names of the user list of ingredients and store them in userIngredientNameList
-    List<dynamic> userIngredientNamesList = new List<dynamic>();
-
-    for(int i = 0; i < selectedIngredientList.length; i++){
-      userIngredientNamesList.add(selectedIngredientList[i].name);
-    }
-
     for(int i = 0; i < tempArr.length; i++) {
 
       // check whether the user ingredient list is empty or not
@@ -297,8 +300,30 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     String prefParam = '';
     String categParam = '';
     String ingParam = '';
-    List<dynamic> tempRecipes = new List();
-    List<dynamic> tempIngList = new List();
+    String ingText = '';
+    List<dynamic> tempRecipes = [];
+    List<dynamic> tempIngList = [];
+    userIngredientNamesList = [];
+
+    for(int i = 0; i < selectedIngredientList.length; i++){
+      userIngredientNamesList.add(selectedIngredientList[i].name);
+    }
+
+    if(ingredientText != null) {
+      ingText = ingredientText.trim();
+    }
+
+    if( ( isUserIngListChecked == true ) && ingText.isEmpty ){
+
+      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
+      print("ingText is right now " + ingText);
+    } else if ( isUserIngListChecked == true ) {
+
+      ingText += ", " + userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
+      print("ingText is right now " + ingText);
+    }
+
+    userIngredientNamesList = ingText.split(" ").join("").split(',');
 
     if(searchText != null && searchText.isNotEmpty){
 
@@ -326,9 +351,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
         linkParams += categParam;
       }
 
-      if(ingredientText.isNotEmpty){
+      if(ingText.isNotEmpty){
 
-        ingParam = getIngredientIds(ingredientText.split(" ").join(""));
+        ingParam = getIngredientIds(ingText.split(" ").join(""));
         linkParams += '&ingredients=';
         linkParams += ingParam;
       }
@@ -361,9 +386,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       nameParam.isEmpty ? linkParams += '?search_type=Ingredient' : linkParams += '&search_type=Ingredient';
 
-      if(ingredientText.isNotEmpty){
+      if(ingText.isNotEmpty){
 
-        ingParam = getIngredientIds(ingredientText.split(" ").join(""));
+        ingParam = getIngredientIds(ingText.split(" ").join(""));
         linkParams += '&ingredients=';
         linkParams += ingParam;
       }
@@ -442,6 +467,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     print(responseCode);
 
     if(responseCode == 200){
+
       newCategories = categoriesList;
 
       setState(() {
@@ -449,10 +475,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
           categoryMap.putIfAbsent(newCategories[i]['name'].toString(), () => false);
         }
       });
-
-      print("new categories of length ${newCategories.length} are: " + newCategories[1]['name'].toString());
-      print("categoryMap is: " + categoryMap.toString());
     } else {
+
       print("Error: unauthorized");
     }
 
@@ -467,6 +491,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     print(responseCode);
 
     if(responseCode == 200){
+
       newPreferences = preferencesList;
 
       setState(() {
@@ -474,10 +499,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
           preferenceMap.putIfAbsent(newPreferences[i]['name'].toString(), () => false);
         }
       });
-
-      print("new preferences of length ${newPreferences.length} are: " + newPreferences[1]['name'].toString());
-      print("preferenceMap is: " + preferenceMap.toString());
     } else {
+
       print("Error: unauthorized");
     }
 
@@ -501,20 +524,20 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
         isAnyCategoryChecked = true;
       }
     });
-
-    /*print(checkedCategories);
-    print('category ids are : ' + categoryIDs.toString());
-    print(categoryMap.keys);*/
   }
 
   Future getCheckedPreferences() async {
 
     preferenceMap.forEach((key, value) {
+
       if(value == true) {
+
         checkedPreferences.add(key);
 
         for(var i = 0; i < preferencesList.length; i++){
+
           if(preferencesList[i]['name'] == key){
+
             preferenceIDs.add(preferencesList[i]['id']);
           }
         }
@@ -522,11 +545,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
         isAnyPreferenceChecked = true;
       }
     });
-
-    /*print(checkedPreferences);
-    print('preference ids are : ' + preferenceIDs.toString());
-    print('isAnyPreferenceChecked? : ' + isAnyPreferenceChecked.toString());
-    print(preferenceMap.keys);*/
   }
 
   @override
@@ -702,9 +720,22 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                             ),
                           ),
                           SizedBox(height: 25.0,),
+                          new CheckboxListTile(
+                            title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
+                            value: isUserIngListChecked,
+                            activeColor: Colors.green,
+                            checkColor: Colors.white,
+                            onChanged: (bool value) {
+                              setState(() {
+
+                                isUserIngListChecked = value;
+                              });
+                            },
+                          ),
+                          SizedBox(height: 5.0,),
                           isAllErr ? Center(
                               child: Text(
-                                "Error: Please check at least 1 category/preference box and enter at least 1 ingredient.",
+                                errMsg,
                                 textAlign: TextAlign.left,
                                 style: TextStyle(
                                   fontSize: 18,
@@ -712,7 +743,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 ),
                               )
                           ) : SizedBox(height: 21.0,),
-                          SizedBox(height: 25.0,),
+                          SizedBox(height: 1.0,),
                           isLoading ? Center(
                             child: CircularProgressIndicator(),
                           ) : new RaisedButton(
@@ -724,15 +755,29 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 isLoading = true; //Data is loading
                               });
 
-                              if( ( ingredientsAllController.text.trim() == '' ) || ( isCatChecked == false ) || ( isPrefChecked == false )){
+                              errMsg = "";
+                              isAllErr = false;
 
+                              if( ( isCatChecked == false ) || ( isPrefChecked == false ) ){
+
+                                errMsg += "Error: At least 1 category and preference box must be selected.\n\n";
                                 isAllErr = true;
                                 setState(() {
                                   isLoading = false; //Data is loading
                                 });
-                              } else {
+                              }
 
-                                isAllErr = false;
+                              if( isUserIngListChecked == false && ingredientsAllController.text.trim().isEmpty ) {
+
+                                errMsg += "Error: An ingredient must be entered.\n\n";
+                                isAllErr = true;
+                                setState(() {
+                                  isLoading = false; //Data is loading
+                                });
+                              }
+
+                              if( isAllErr == false ) {
+
                                 clearResults();
                                 isIngredientSearch = true;
                                 await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
@@ -926,17 +971,36 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               ),
                             ),
                             SizedBox(height: 25.0,),
+                            new CheckboxListTile(
+                              title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
+                              value: isUserIngListChecked,
+                              activeColor: Colors.green,
+                              checkColor: Colors.white,
+                              onChanged: (bool value) {
+                                setState(() {
+
+                                  isUserIngListChecked = value;
+
+                                  if(isUserIngListChecked == false) {
+                                    print("isUserIngListChecked is now " + isUserIngListChecked.toString());//isUserIngListChecked = true;
+                                  } else {
+                                    print("isUserIngListChecked is now " + isUserIngListChecked.toString());//isUserIngListChecked = false;
+                                  }
+                                });
+                              },
+                            ),
+                            SizedBox(height: 5.0,),
                             isIngredientErr ? Center(
                                 child: Text(
-                                  "Error: Please enter an ingredient",
+                                  errMsg,
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.red[400],
                                   ),
                                 )
-                            ) : SizedBox(height: 21.0,),
-                            SizedBox(height: 25.0,),
+                            ) : SizedBox(height: 1.0,),
+                            SizedBox(height: 15.0,),
                             isLoading ? Center(
                               child: CircularProgressIndicator(),
                             ) : new RaisedButton(
@@ -949,9 +1013,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 });
 
                                 clearResults();
+                                errMsg = "";
+                                isIngredientErr = false;
 
-                                if(onlyIngredientsController.text.trim() == ''){
+                                if( isUserIngListChecked == false && onlyIngredientsController.text.trim().isEmpty ) {
 
+                                  errMsg += "Error: An ingredient must be entered.";
                                   isIngredientErr = true;
                                   setState(() {
                                     isLoading = false; //Data is loading

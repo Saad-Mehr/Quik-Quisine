@@ -4,6 +4,7 @@ import 'package:quikquisine490/ingredient.dart';
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
 import 'package:quikquisine490/user.dart';
+import 'SearchResultsSamePage.dart';
 import 'calendar.dart';
 import 'main.dart';
 import 'mysql.dart';
@@ -45,7 +46,7 @@ List<dynamic> missingIngredients = [];
 List<dynamic> userIngredientNamesList = [];
 
 class SearchPage extends StatelessWidget {
-  static const String _title = 'Search Recipes';
+  static const String _title = 'Advanced Search';
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +94,12 @@ class SearchPage extends StatelessWidget {
       else if (option == MenuOptions.Search) {
         Navigator.push(
           context,
+          MaterialPageRoute(builder: (context) => BasicSearch()),
+        );
+      }
+      else if (option == MenuOptions.AdvancedSearch) {
+        Navigator.push(
+          context,
           MaterialPageRoute(builder: (context) => SearchPage()),
         );
       }
@@ -127,6 +134,7 @@ class SearchPage extends StatelessWidget {
 class MenuOptions {
   static const String Recipes = 'Recipes';
   static const String Search = 'Search';
+  static const String AdvancedSearch = 'Advanced Search';
   static const String MealPlanner = 'MealPlanner';
   static const String Profile = 'Profile';
   static const String MyIngredientList = 'My ingredients list';
@@ -135,6 +143,7 @@ class MenuOptions {
   static const List<String> options = <String>[
     Recipes,
     Search,
+    AdvancedSearch,
     MealPlanner,
     Profile,
     MyIngredientList,
@@ -549,8 +558,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    double width=MediaQuery.of(context).size.width;
-    double height=MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: DefaultTabController(

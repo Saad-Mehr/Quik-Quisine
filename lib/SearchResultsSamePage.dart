@@ -11,18 +11,20 @@ import 'dart:async';
 import 'ingredient.dart';
 import 'search.dart';
 
+AutoCompleteTextField searchTextField;
+TextEditingController controller = new TextEditingController();
+
 class InitiateRecipeList extends StatefulWidget {
 
   RecipeListState createState() => RecipeListState();
 
 }
 
-void clearRecipeList(){
+Future<void> clearRecipeList() async {
 
   if(recipeList != null){
     recipeList.clear();
-  }
-  else{
+  } else {
     recipeList = [];
   }
 }
@@ -51,8 +53,6 @@ class AutocompleteSearch extends StatefulWidget{
 
 class AutocompleteSearchState extends State<AutocompleteSearch>{
 
-  AutoCompleteTextField searchTextField;
-  TextEditingController controller = new TextEditingController();
   GlobalKey<AutoCompleteTextFieldState<Recipes>> key = new GlobalKey();
 
   @override
@@ -61,12 +61,11 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
     // double width = MediaQuery.of(context).size.width;
     // double height = MediaQuery.of(context).size.height;
 
-    return Expanded(
+    return Container(
       child: Container(
-
         // height: height,
         // width: width,
-        // margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
 
         child: Column(
             children: <Widget>[
@@ -76,7 +75,7 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                   fontSize: 16.0,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search recipe name',
+                  hintText: 'Search recipes',
                   prefixIcon: Icon(Icons.search),
                   isDense: true,
                   enabledBorder: OutlineInputBorder(
@@ -102,7 +101,7 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                 itemFilter: (item, query) {
                   return item.name
                       .toLowerCase()
-                      .startsWith(query.toLowerCase());
+                      .contains(query.toLowerCase());
                 },
                 itemSorter: (a, b) {
                   return a.name.compareTo(b.name);
@@ -146,7 +145,7 @@ class MenuOptions {
 }
 
 class BasicSearch extends StatelessWidget{
-  static const String _title = 'Search Recipes';
+  static const String _title = 'Search';
 
   Future<void> optionAction(String option, BuildContext context) async {
 
@@ -229,47 +228,57 @@ class BasicSearch extends StatelessWidget{
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            SizedBox(height: 30.0,),
-            Text(
-              "What would you like you create?",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black54,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 30.0,),
+              Text(
+                "Discover",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black54,
+                ),
               ),
-            ),
-            SizedBox(height: 30.0,),
-            InitiateRecipeList(),
-            RaisedButton(
-              child: Text('Save'),
-              color: Color(0xffEE7B23),
-              onPressed: () async{
-                if(selectedIngredientList != null && selectedIngredientList.isNotEmpty){
-                  int response_code = await SaveIngredients();
-                  if (response_code == 200)
-                  {
-                    Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
-                    Flushbar(
-                      message: "Saved successfully",
-                      duration:  Duration(seconds: 3),
-                      backgroundColor: Colors.green,
-                    )..show(context);
+              SizedBox(height: 30.0,),
+              InitiateRecipeList(),
+              SizedBox(height: 30.0,),
+              RaisedButton(
+                child: Text('Go!'),
+                color: Colors.orange[600],
+                textColor: Colors.white,
+                onPressed: () async {
+
+                  if( searchTextField.textField.controller.text.isEmpty ) {
+                    final snackBar = SnackBar(
+                      content: Text('Please search for a recipe name'),
+                      backgroundColor: Colors.redAccent,
+                    );
+
+                    _scaffoldKey.currentState..showSnackBar(snackBar);
+                  } else if (selectedIngredientList == null || selectedIngredientList.isEmpty) {
+                    final snackBar = SnackBar(
+                      content: Text('Please 1 or more ingredients in your list'),
+                      backgroundColor: Colors.redAccent,
+                    );
+
+                    _scaffoldKey.currentState..showSnackBar(snackBar);
+                  } else {
+
                   }
+                },
+              ),
+              SizedBox(height: 10.0,),
+              RaisedButton(
+                child: Text('Advanced Search'),
+                color: Colors.orange[600],
+                textColor: Colors.white,
+                onPressed: () async {
+                  Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
                 }
-                else{
-                  // show the message that the ingredient has been removed
-                  final snackBar = SnackBar(
-                    content: Text('Please list your available ingredients to display your missing ingredients on recipes'),
-                    backgroundColor: Colors.redAccent,
-                  );
-                  // and use it to show a SnackBar.
-                  _scaffoldKey.currentState..showSnackBar(snackBar);
-                }
-              },
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

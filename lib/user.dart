@@ -1,10 +1,15 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'ingredient.dart';
 
 
 List UserList = [];
 List userIngredientList = [];
+
+// this is the list of the user ingredient
+// it's declared here so that we can check whether to display the 'my ingredient' page after user signup or login
+List<Ingredients> selectedIngredientList = [];
 
 Future<int> LogIn(String email, String password) async{
   var resBody = {};
@@ -56,7 +61,8 @@ Future<int> SignUp(String UserName,String FirstName, String LastName, String ema
   if (response.statusCode == 200) {
     var parsedJson = json.decode(response.body);
     var data = parsedJson['data'];
-    UserList = [data['id'],data['username'],data['email'],data['authentication_token']];
+    List user = [data['email'],data['username'],data['authentication_token'],data['id']];
+    UserList = user;
     print(response.statusCode);
 
     return response.statusCode;

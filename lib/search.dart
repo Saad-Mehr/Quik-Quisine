@@ -137,7 +137,7 @@ class MenuOptions {
   static const String AdvancedSearch = 'Advanced Search';
   static const String MealPlanner = 'MealPlanner';
   static const String Profile = 'Profile';
-  static const String MyIngredientList = 'My ingredients list';
+  static const String MyIngredientList = 'My ingredients';
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[

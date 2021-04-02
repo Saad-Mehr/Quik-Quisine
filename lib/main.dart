@@ -4,6 +4,7 @@ import 'user.dart';
 import 'SignInPage.dart';
 import 'search.dart';
 import 'userIngredientList.dart';
+import 'SearchResultsSamePage.dart';
 
 
 void main() {
@@ -121,10 +122,13 @@ class _MyappState extends State<Myapp> {
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
                           if (response_code == 200)
                           {
-                            Navigator.of(context).push(new MaterialPageRoute(builder: (_)=>new HomePage()),).then((val)=>val);
-                            //Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
                             setState((){isLoading = false;});
-                            Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
+                            if(selectedIngredientList.isEmpty) {
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
+                            }
+                            else {
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => BasicSearch()));
+                            }
                           } else if ( response_code == 401 ) {
                             setState(() {
                               print('Status code is: $response_code');

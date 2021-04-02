@@ -10,6 +10,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'dart:async';
 import 'ingredient.dart';
 import 'search.dart';
+import 'user.dart';
 
 class InitiateRecipeList extends StatefulWidget {
 

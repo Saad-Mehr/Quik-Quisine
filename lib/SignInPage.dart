@@ -3,6 +3,8 @@ import 'HomePage.dart';
 import 'main.dart';
 import 'user.dart';
 import 'userIngredientList.dart';
+import 'search.dart';
+import 'SearchResultsSamePage.dart';
 
 class Second extends StatefulWidget {
   @override

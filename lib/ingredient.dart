@@ -4,8 +4,8 @@ import 'package:quikquisine490/userIngredientList.dart';
 import 'user.dart';
 import 'package:http/http.dart' as http;
 
-List<Ingredients> ingredientList;
-List<Ingredients> selectedIngredientList;
+// the variable that stores the user existing ingredients is declared in the user.dart.(selectedIngredientList)
+List<Ingredients> ingredientList = [];
 
 class Ingredients {
   int id;

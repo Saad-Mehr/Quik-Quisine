@@ -1,58 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:quikquisine490/SearchResultsSamePage.dart';
 import 'package:quikquisine490/profile.dart';
+import 'package:quikquisine490/recipe.dart';
 import 'package:quikquisine490/recipes.dart';
+import 'package:quikquisine490/userIngredientList.dart';
 import 'calendar.dart';
 import 'main.dart';
-import 'user.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import 'dart:async';
 import 'ingredient.dart';
 import 'search.dart';
 
-class InitiateIngredientList extends StatefulWidget {
+class InitiateRecipeList extends StatefulWidget {
 
-  IngredientListState createState() => IngredientListState();
+  RecipeListState createState() => RecipeListState();
 
 }
 
-void clearIngredientAndExistingIngredientList(){
-  if(selectedIngredientList != null){
-    selectedIngredientList.clear();
-  }
-  else{
-    selectedIngredientList = new List<Ingredients>();
-  }
+void clearRecipeList(){
 
-  if(ingredientList != null){
-    ingredientList.clear();
+  if(recipeList != null){
+    recipeList.clear();
   }
   else{
-    ingredientList = new List<Ingredients>();
+    recipeList = [];
   }
 }
 
-class IngredientListState extends State<InitiateIngredientList> {
+class RecipeListState extends State<InitiateRecipeList> {
   @override
   void initState() {
-    clearIngredientAndExistingIngredientList();
-    _loadAutoCompleteIngredientsList();
-    _loadExistingIngredientsList();
+    clearRecipeList();
+    _loadAutoCompleteRecipeList();
     super.initState();
   }
 
-  void _loadExistingIngredientsList() async {
-    await existingIngredients();
-    //once the existing user list is updated the set state is trigger to rebuild the page
-    setState((){
-    });
-  }
-  void _loadAutoCompleteIngredientsList() async {
-    await ingredients();
+  void _loadAutoCompleteRecipeList() async {
+    await recipes();
   }
 
   @override
@@ -60,39 +44,46 @@ class IngredientListState extends State<InitiateIngredientList> {
     return AutocompleteSearch();
   }
 }
-////////////////////////////////////////////////////////////////////////////////
 
-//this is for the autocomplete search bar//////////////////////////////////////
 class AutocompleteSearch extends StatefulWidget{
   AutocompleteSearchState createState() => AutocompleteSearchState();
 }
 
 class AutocompleteSearchState extends State<AutocompleteSearch>{
+
   AutoCompleteTextField searchTextField;
   TextEditingController controller = new TextEditingController();
-  GlobalKey<AutoCompleteTextFieldState<Ingredients>> key = new GlobalKey();
+  GlobalKey<AutoCompleteTextFieldState<Recipes>> key = new GlobalKey();
 
   @override
   Widget build(BuildContext context) {
+
+    // double width = MediaQuery.of(context).size.width;
+    // double height = MediaQuery.of(context).size.height;
+
     return Expanded(
+      child: Container(
+
+        // height: height,
+        // width: width,
+        // margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
         child: Column(
             children: <Widget>[
-              searchTextField = AutoCompleteTextField<Ingredients>(
+              searchTextField = AutoCompleteTextField<Recipes>(
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 16.0,
                 ),
                 decoration: InputDecoration(
-                  suffixIcon: Container(
-                    width: 85.0,
-                    height: 60.0,
+                  hintText: 'Search recipe name',
+                  prefixIcon: Icon(Icons.search),
+                  isDense: true,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
                   ),
-                  contentPadding: EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 20.0),
-                  filled: true,
-                  hintText: "Search ingredient",
-                  hintStyle: TextStyle(
-                      color: Colors.black
-                  ),
+                  border: const OutlineInputBorder(),
                 ),
                 itemBuilder: (context, item){
                   return Row(
@@ -119,51 +110,19 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                 itemSubmitted: (item) {
                   setState(() {
                     searchTextField.textField.controller.text = item.name;
-                    selectedIngredientList.add(item);
                   });
                 },
                 key: key,
-                suggestions: ingredientList,
+                suggestions: recipeList,
                 suggestionsAmount: 10,
+                clearOnSubmit: false,
               ),
-              //this is where the list of ingredients is updated and displayed
-              Expanded(
-                  child: ListView.builder(
-                    itemCount: selectedIngredientList != null ? selectedIngredientList.length : 0,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(selectedIngredientList[index].name),
-                        trailing: IconButton(
-                          icon: Icon(
-                              Icons.delete,
-                              size: 25.0,
-                              color: Colors.red
-                          ),
-                          onPressed:(){
-                            // this is where we update the list when an ingredient is deleted
-                            setState(() {
-                              // show the message that the ingredient has been removed
-                              final snackBar = SnackBar(
-                                duration: const Duration(seconds: 1),
-                                content: Text('Removed ' + selectedIngredientList[index].name),
-                              );
-                              // and use it to show a SnackBar.
-                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                              selectedIngredientList.removeWhere((ingredient) => ingredient.name == selectedIngredientList[index].name);
-                            }
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  )
-              )
             ]
         )
+      )
     );
   }
 }
-///////////////////////////////////////////////////////////////////////////////
 
 class MenuOptions {
   static const String Recipes = 'Recipes';
@@ -186,21 +145,14 @@ class MenuOptions {
 
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-// returns the user ingredient list from db if it already exist
-
-
-//List the ingredients when the suggestion is tapped
-
-class UserIngredientList extends StatelessWidget{
-  static const String _title = 'My Ingredients List';
+class BasicSearch extends StatelessWidget{
+  static const String _title = 'Search Recipes';
 
   Future<void> optionAction(String option, BuildContext context) async {
 
     if (option == MenuOptions.Recipes) {
+
       await getRecipes();
-      //filteredSortedIng.clear();
       recipesPageTitle = 'Recipes';
       Navigator.push(
         context,
@@ -245,6 +197,15 @@ class UserIngredientList extends StatelessWidget{
     }
   }
 
+  /*
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
+    height: height,
+    width: width,
+    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+  */
+
   @override
   Widget build(BuildContext context) {
     final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -270,18 +231,17 @@ class UserIngredientList extends StatelessWidget{
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            Container(
-              margin: EdgeInsets.all(20.0),
-              padding: EdgeInsets.all(20),
-              child: Text("List your available ingredients",
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.black54,
-                ),
+            SizedBox(height: 30.0,),
+            Text(
+              "What would you like you create?",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.black54,
               ),
             ),
-            InitiateIngredientList(),
+            SizedBox(height: 30.0,),
+            InitiateRecipeList(),
             RaisedButton(
               child: Text('Save'),
               color: Color(0xffEE7B23),

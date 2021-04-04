@@ -556,18 +556,29 @@ class MyStatelessWidget extends StatelessWidget {
     return ListView.builder(
       itemCount: totalRecipes.length,
       itemBuilder: (BuildContext context,index){
-        return CustomListItemTwo(
-          thumbnail: Container(
-            child: Image.network(totalRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+        return new Card(
+          child: new Container(
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: 10, // Space between underline and text
+              right: 10,
+              left: 10,
+            ),
+            child: CustomListItemTwo(
+              thumbnail: Container(
+                child: Image.network(totalRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+              ),
+              title: totalRecipes[index]['name'],
+              subtitle: totalRecipes[index]['description'],
+              serving: "Servings: ${totalRecipes[index]['serving']}",
+              ingredients: " ${filteredSortedTotal[index]}",
+              instructions: "${totalRecipes[index]['preparation']}",
+              id: totalRecipes[index]['id'],
+              AverageRating: double.parse(totalRecipes[index]['AverageRating']),
+              review: totalRecipes[index]['review'],
+            ),
+
           ),
-          title: totalRecipes[index]['name'],
-          subtitle: totalRecipes[index]['description'],
-          serving: "Servings: ${totalRecipes[index]['serving']}",
-          ingredients: " ${filteredSortedTotal[index]}",
-          instructions: "${totalRecipes[index]['preparation']}",
-          id: totalRecipes[index]['id'],
-          AverageRating: double.parse(totalRecipes[index]['AverageRating']),
-          review: totalRecipes[index]['review'],
         );
       },
     );

@@ -17,6 +17,7 @@ final String searchTypeTextAll = "All";
 final String searchTypeTextPref = "Preference";
 final String searchTypeTextCat = "Category";
 final String searchTypeTextIng = "Ingredient";
+final String searchTypeTextName = "Recipe";
 List newCategories = [];
 List newPreferences = [];
 List categoryIDs = [];
@@ -281,12 +282,14 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     }
 
     List<dynamic> tempArr = sortedRecipeIngNames;
+    List<dynamic> tempUserIng = userIngredientNamesList.map((element)=>element.toLowerCase()).toList();
 
     for(int i = 0; i < tempArr.length; i++) {
 
-      // check whether the user ingredient list is empty or not
-      if(userIngredientNamesList.isNotEmpty){
-        tempArr[i].removeWhere((element) => userIngredientNamesList.contains(element));
+      if(tempUserIng.isNotEmpty){
+
+        tempArr[i] = tempArr[i].map((element) => element.toLowerCase()).toList();
+        tempArr[i].removeWhere((element) => tempUserIng.contains(element));
       }
 
       if( tempArr[i].isEmpty ) {
@@ -322,11 +325,13 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       ingText = ingredientText.trim();
     }
 
-    if( ( isUserIngListChecked == true ) && ingText.isEmpty ){
+    if( userIngredientNamesList.isNotEmpty && (userIngredientNamesList != null) ){
 
       ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
       print("ingText is right now " + ingText);
-    } else if ( isUserIngListChecked == true ) {
+    }
+
+    if ( ingText.isNotEmpty && (ingText != null) ) {
 
       ingText += ", " + userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
       print("ingText is right now " + ingText);
@@ -334,7 +339,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     userIngredientNamesList = ingText.split(" ").join("").split(',');
 
-    if(searchText != null && searchText.isNotEmpty){
+    if( searchText != null && searchText.isNotEmpty && searchType != searchTypeTextName ){
 
       searchTerm = searchText;
       nameParam = searchTerm;
@@ -401,6 +406,14 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
         linkParams += '&ingredients=';
         linkParams += ingParam;
       }
+    } else if (searchType == searchTypeTextName){
+
+      nameParam.isEmpty ? linkParams += '?search_type=Recipe' : linkParams += '&search_type=Recipe';
+
+      categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+      linkParams += '&recipe_name=';
+      linkParams += searchText;
+
     } else {
 
       print('Bad searchType input');
@@ -435,16 +448,15 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     totalRecipes = tempRecipes;
     tempIngList = filteredSortedIng;
 
-    if(searchType == searchTypeTextAll || searchType == searchTypeTextIng) {
-      for (int i = 0; i < missingIngredients.length; i++) {
-        filteredSortedIng[i] += "\n${missingIngredients[i]}\n";
-      }
+    for (int i = 0; i < missingIngredients.length; i++) {
+      filteredSortedIng[i] += "\n${missingIngredients[i]}\n";
     }
 
     filteredSortedTotal = filteredSortedIng;
     filteredSortedIng = tempIngList;
 
     recipesPageTitle = "Recipes found: " + totalRecipes.length.toString();
+    //print("filteredSortedTotal is ------------------ " + filteredSortedTotal.toString());
 
     setState(() {
       isLoading = false;
@@ -620,7 +632,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               isDense: true,
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
                               ),
                               border: const OutlineInputBorder(),
                             ),
@@ -723,7 +735,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               isDense: true,
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
                               ),
                               border: const OutlineInputBorder(),
                             ),
@@ -790,7 +802,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
                                 isIngredientSearch = true;
                                 await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
+                                searchedFromOtherPg = true;
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                searchResultLabel = "Advanced Search";
                               }
                             },
                           ),
@@ -816,7 +830,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 isDense: true,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
                                 ),
                                 border: const OutlineInputBorder(),
                               ),
@@ -870,7 +884,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
+                                searchedFromOtherPg = true;
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                searchResultLabel = "Advanced Search";
                               },
                             ),
                           ]
@@ -894,7 +910,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 isDense: true,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
                                 ),
                                 border: const OutlineInputBorder(),
                               ),
@@ -948,7 +964,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 clearResults();
 
                                 await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
+                                searchedFromOtherPg = true;
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                searchResultLabel = "Advanced Search";
                               },
                             ),
                           ]
@@ -974,7 +992,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 isDense: true,
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[600], width: 1.5),
+                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
                                 ),
                                 border: const OutlineInputBorder(),
                               ),
@@ -990,11 +1008,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                   isUserIngListChecked = value;
 
-                                  if(isUserIngListChecked == false) {
-                                    print("isUserIngListChecked is now " + isUserIngListChecked.toString());//isUserIngListChecked = true;
-                                  } else {
-                                    print("isUserIngListChecked is now " + isUserIngListChecked.toString());//isUserIngListChecked = false;
-                                  }
+                                  print("isUserIngListChecked is now " + isUserIngListChecked.toString());
                                 });
                               },
                             ),
@@ -1037,7 +1051,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
                                   await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>RecipePage()));
+                                  searchedFromOtherPg = true;
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                  searchResultLabel = "Advanced Search";
                                 }
 
                               },

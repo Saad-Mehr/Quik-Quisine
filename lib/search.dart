@@ -249,6 +249,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     searchedIngIDs = ingParam.split(',');
 
+    print("searchedIngIDs in search.dart is now " + searchedIngIDs.toString());
+    print("ingredientsList in search.dart is now " + ingredientsList.toString());
+
     for(int i = 0; i < searchedIngIDs.length; i++){
       for(int j = 0; j < ingredientsList.length; j++){
         if(ingredientsList[j]['name'] == searchedIngIDs[i]){
@@ -259,6 +262,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       }
     }
 
+    print("searchedIngIDs in search.dart is now " + searchedIngIDs.toString());
     ingParam = searchedIngIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
     return ingParam;
   }
@@ -418,6 +422,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       print('Bad searchType input');
     }
+
+    // linkParams in advanced page is now ?search_type=Ingredient&ingredients=eggegg,21,4261,2691,3501,601,1,21,4261,2691,3501,601
+    print("linkParams in advanced page is now " + linkParams);
 
     await recipeSearch(linkParams);
 

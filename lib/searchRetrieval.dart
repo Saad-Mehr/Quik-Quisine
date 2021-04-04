@@ -4,6 +4,7 @@ import 'dart:async';
 import 'user.dart';
 
 List categoriesList = [];
+List retrievalCatIDs = [];
 List preferencesList = [];
 List searchList = [];
 
@@ -11,6 +12,7 @@ Future<int> categories() async {
   var resBody = {};
   var jsonbody = {};
   categoriesList = [];
+  retrievalCatIDs = [];
   resBody["email"] = UserList[0];
   resBody["token"] = UserList[2];
   jsonbody["user"] = resBody;
@@ -29,9 +31,12 @@ Future<int> categories() async {
     var data = parsedJson['data'];
     for(var i = 0; i < data.length; i++){
       categoriesList.add(data[i]);
+      retrievalCatIDs.add(data[i]["id"]);
     }
+
     print("data is: ${data[0]}");
     print("categories are: $categoriesList");
+    print("category ids are: $retrievalCatIDs");
     print("Success: Code ${response.statusCode}");
     return response.statusCode;
   } else if( (response.statusCode == 401) || (response.statusCode == 500) ){ // incorrect email and/or password

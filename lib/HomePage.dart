@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quikquisine490/userIngredientList.dart';
+import 'SearchResultsSamePage.dart';
 import 'calendar.dart';
 import 'main.dart';
 import 'search.dart';
@@ -54,7 +55,17 @@ Widget _myListView(BuildContext context) {
         },
       ),
       ListTile(
-        title: Text('Search'),
+        title: Text('Basic Search'),
+        trailing: Icon(Icons.keyboard_arrow_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => BasicSearch()),
+          );
+        },
+      ),
+      ListTile(
+        title: Text('Advanced Search'),
         trailing: Icon(Icons.keyboard_arrow_right),
         onTap: () {
           Navigator.push(

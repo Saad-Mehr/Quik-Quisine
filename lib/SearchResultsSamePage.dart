@@ -31,11 +31,15 @@ class InitiateRecipeList extends StatefulWidget {
 
 Future<void> clearRecipeListSamePage() async {
 
+  //List temp = recipeList;
+
   if(recipeList != null){
     recipeList.clear();
   } else {
     recipeList = [];
   }
+
+  //recipeList = temp;
 }
 
 class RecipeListState extends State<InitiateRecipeList> {
@@ -43,7 +47,22 @@ class RecipeListState extends State<InitiateRecipeList> {
   void initState() {
 
     clearRecipeListSamePage();
+    //print("savedRecipesList in recipelist initstate is " + savedRecipesList.toString());
+
+    //print("recipeList is " + recipeList.toString());
+
+    /*if(recipeList == null){
+      print("recipeList is null " + recipeList.toString());
+    } else if(recipeList.isEmpty){
+      print("recipeList is empty ");
+      //_loadAutoCompleteRecipeList();
+    }*/
+
     _loadAutoCompleteRecipeList();
+    //savedRecipesList = recipeList;
+
+    //print("recipeList after operation is " + recipeList.toString());
+    //print("savedRecipesList after operation is " + savedRecipesList.toString());
 
     if(searchedFromOtherPg == false) {
       searchResultLabel = "Recipes based on your ingredients";
@@ -53,6 +72,7 @@ class RecipeListState extends State<InitiateRecipeList> {
   }
 
   void _loadAutoCompleteRecipeList() async {
+    print("Executing queries in recipes()");
     await recipes();
   }
 
@@ -243,8 +263,7 @@ class BasicSearch extends StatelessWidget {
 
 class BasicSearchWidget extends StatefulWidget {
   @override
-  BasicSearchWidgetState createState() =>
-      new BasicSearchWidgetState();
+  BasicSearchWidgetState createState() => BasicSearchWidgetState();
 }
 
 
@@ -264,6 +283,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
     if(searchedFromOtherPg == false){
       clearResults();
+      searchRecipeNames(null);
     }
 
     userIngredientNamesList = [];
@@ -272,9 +292,10 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
       userIngredientNamesList.add(selectedIngredientList[i].name);
     }
 
-    searchRecipeNames(null);
+    if(categoriesList.isEmpty){
+      categories();
+    }
 
-    categories();
     isLoading = false;
     super.initState();
   }
@@ -307,6 +328,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
   getIngredientIds(String ingParam){
 
     searchedIngIDs = ingParam.split(',');
+    print("searchedIngIDs is now " + searchedIngIDs.toString());
 
     for(int i = 0; i < searchedIngIDs.length; i++){
       for(int j = 0; j < ingredientsList.length; j++){
@@ -377,10 +399,14 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
     if( userIngredientNamesList.isNotEmpty && userIngredientNamesList != null ){ // i.e. if user has 1+ ingredients
 
-      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
+      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ",");
     }
 
-    userIngredientNamesList = ingText.split(" ").join("").split(',');
+    print("ingText is now " + ingText);
+    userIngredientNamesList = ingText.split(',');
+    print("userIngredientNamesList is now " + userIngredientNamesList.toString());
+    print("ingredientsList is now " + ingredientsList.toString());
+    print("ingText split is now " + ingText.split(',').toString());
 
     if(searchText != null && searchText.isNotEmpty) {
 
@@ -396,7 +422,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
       linkParams += '?search_type=Ingredient';
 
-      ingText = getIngredientIds(ingText.split(" ").join(""));
+      ingText = getIngredientIds(ingText);
       linkParams += '&ingredients=';
       linkParams += ingText;
     }
@@ -516,7 +542,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
                   clearRecipeListSamePage();
                   clearResults();
-                  categories();
+                  //categories();
 
                   categoryIDs = retrievalCatIDs;
                   await searchRecipeNames( searchTextField.textField.controller.text );

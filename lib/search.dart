@@ -329,19 +329,20 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       ingText = ingredientText.trim();
     }
 
-    if( userIngredientNamesList.isNotEmpty && (userIngredientNamesList != null) ){
-
-      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
-      print("ingText is right now " + ingText);
-    }
-
     if ( ingText.isNotEmpty && (ingText != null) ) {
 
       ingText += ", " + userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
       print("ingText is right now " + ingText);
     }
 
+    if( userIngredientNamesList.isNotEmpty && (userIngredientNamesList != null) ){
+
+      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ",");
+      print("ingText is right now " + ingText);
+    }
+
     userIngredientNamesList = ingText.split(" ").join("").split(',');
+    print("userIngredientNamesList is now " + userIngredientNamesList.toString());
 
     if( searchText != null && searchText.isNotEmpty && searchType != searchTypeTextName ){
 
@@ -474,18 +475,40 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   void initState() {
 
     clearRecipeList();
-    ingredientsList.clear();
 
-    setState(() {
+    /*setState(() {
       isCategoryLoading = true; //Data is loading
       isPreferenceLoading = true;
       isIngredientLoading = true;
-    });
+    });*/
 
     super.initState();
-    findCategories();
-    findPreferences();
-    getIngredients();
+
+    print("categoriesList before conditional is " + categoriesList.toString());
+
+    if(categoriesList.isEmpty || categoryMap.isEmpty){
+      print("categoriesList before conditional is " + categoriesList.toString());
+      setState(() {
+        isCategoryLoading = true;
+      });
+      findCategories();
+    }
+
+    if(preferencesList.isEmpty || preferenceMap.isEmpty){
+      setState(() {
+        isPreferenceLoading = true;
+      });
+      findPreferences();
+    }
+
+    if(ingredientsList.isEmpty){
+      setState(() {
+        isIngredientLoading = true;
+      });
+      getIngredients();
+    }
+
+    print("categoryMap inside initstate is " + categoryMap.toString());
     print('hi there');
   }
 
@@ -505,8 +528,10 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       });
     } else {
 
-      print("Error: unauthorized");
+      print("Error findCategories() : unauthorized");
     }
+
+    print("categoryMap inside findcategories is " + categoryMap.toString());
 
     setState(() {
       isCategoryLoading = false;
@@ -529,7 +554,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       });
     } else {
 
-      print("Error: unauthorized");
+      print("Error findPreferences() : unauthorized");
     }
 
     setState(() {
@@ -811,7 +836,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
-                                searchResultLabel = "Advanced Search";
+                                searchResultLabel = "Advanced Search Results";
                               }
                             },
                           ),
@@ -893,7 +918,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
-                                searchResultLabel = "Advanced Search";
+                                searchResultLabel = "Advanced Search Results";
                               },
                             ),
                           ]
@@ -973,7 +998,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
-                                searchResultLabel = "Advanced Search";
+                                searchResultLabel = "Advanced Search Results";
                               },
                             ),
                           ]
@@ -1060,7 +1085,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
                                   searchedFromOtherPg = true;
                                   Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
-                                  searchResultLabel = "Advanced Search";
+                                  searchResultLabel = "Advanced Search Results";
                                 }
 
                               },

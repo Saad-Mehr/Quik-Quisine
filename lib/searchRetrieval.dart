@@ -4,8 +4,8 @@ import 'dart:async';
 import 'user.dart';
 
 List categoriesList = [];
-List retrievalCatIDs = [];
 List preferencesList = [];
+List retrievalCatIDs = [];
 List searchList = [];
 
 Future<int> categories() async {

@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'user.dart';
 
-List<Recipes> recipeList;
+List<Recipes> recipeList = [];
+//List<Recipes> savedRecipesList;
 
 class Recipes {
   int id;
@@ -18,6 +19,7 @@ class Recipes {
 
 Future<int> recipes() async {
   var resBody = {};
+  //recipeList = [];
   resBody["email"] = UserList[0];
   resBody["token"] = UserList[2];
   String recipesListURL = 'https://quik-quisine.herokuapp.com/api/v1/recipes';
@@ -33,7 +35,10 @@ Future<int> recipes() async {
     }
     /*print("data is: ${data[0]["name"]}");
     print("recipes are: $recipeList");*/
-    print("Success: Code ${response.statusCode}");
+    print("Success in recipes() : Code ${response.statusCode}");
+    print("recipeList is " + recipeList.toString());
+    /*print("savedRecipesList is " + savedRecipesList.toString());
+    savedRecipesList = recipeList;*/
     return response.statusCode;
   } else if( (response.statusCode == 401) || (response.statusCode == 500) ){
     print("Error: Unauthorized");

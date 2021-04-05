@@ -11,15 +11,18 @@ import 'main.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'dart:async';
 import 'ingredient.dart';
+import 'mysql.dart';
 import 'search.dart';
 import 'user.dart';
+import 'package:mysql1/mysql1.dart' as mysql1Dart;
 
 AutoCompleteTextField searchTextField;
 TextEditingController controller = new TextEditingController();
 ItemScrollController _scrollController = ItemScrollController();
 String searchResultLabel = "Recipes based on your ingredients";
 bool isLoading = false;
-bool searchedFromOtherPg;
+bool isRecipeListLoading = false;
+bool searchedFromOtherPg = false;
 
 class InitiateRecipeList extends StatefulWidget {
 
@@ -28,24 +31,48 @@ class InitiateRecipeList extends StatefulWidget {
 
 Future<void> clearRecipeListSamePage() async {
 
+  //List temp = recipeList;
+
   if(recipeList != null){
     recipeList.clear();
   } else {
     recipeList = [];
   }
+
+  //recipeList = temp;
 }
 
 class RecipeListState extends State<InitiateRecipeList> {
   @override
   void initState() {
+
     clearRecipeListSamePage();
-    //clearResults();
+    //print("savedRecipesList in recipelist initstate is " + savedRecipesList.toString());
+
+    //print("recipeList is " + recipeList.toString());
+
+    /*if(recipeList == null){
+      print("recipeList is null " + recipeList.toString());
+    } else if(recipeList.isEmpty){
+      print("recipeList is empty ");
+      //_loadAutoCompleteRecipeList();
+    }*/
+
     _loadAutoCompleteRecipeList();
-    searchResultLabel = "Recipes based on your ingredients";
+    //savedRecipesList = recipeList;
+
+    //print("recipeList after operation is " + recipeList.toString());
+    //print("savedRecipesList after operation is " + savedRecipesList.toString());
+
+    if(searchedFromOtherPg == false) {
+      searchResultLabel = "Recipes based on your ingredients";
+    }
+
     super.initState();
   }
 
   void _loadAutoCompleteRecipeList() async {
+    print("Executing queries in recipes()");
     await recipes();
   }
 
@@ -236,17 +263,22 @@ class BasicSearch extends StatelessWidget {
 
 class BasicSearchWidget extends StatefulWidget {
   @override
-  BasicSearchWidgetState createState() =>
-      new BasicSearchWidgetState();
+  BasicSearchWidgetState createState() => BasicSearchWidgetState();
 }
 
 
 class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProviderStateMixin {
 
   bool isFirstSearch = true;
+  var db = new Mysql();
 
   void initState() {
 
+    setState(() {
+      isRecipeListLoading = true;
+    });
+
+    ingredientsList.clear();
     clearRecipeListSamePage();
 
     if(searchedFromOtherPg == false){
@@ -260,14 +292,43 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
       userIngredientNamesList.add(selectedIngredientList[i].name);
     }
 
-    categories();
+    if(categoriesList.isEmpty){
+      categories();
+    }
+
     isLoading = false;
     super.initState();
+  }
+
+
+  Future getIngredients() async {
+
+    String sqlQuery = 'SELECT ingredients.id, ingredients.name ' +
+        'FROM heroku_19a4bd20cf30ab1.ingredients;';
+
+    await db.getConnection().then((conn) {
+
+      return conn.query(sqlQuery).then((mysql1Dart.Results results) {
+        results.forEach((row) {
+
+          Map r = new Map();
+          for(int i=0; i<results.fields.length; i++) {
+            r[results.fields[i].name] = row[i];
+          }
+
+          ingredientsList.add(r);
+        });
+      });
+    });
+
+    setState(() {
+    });
   }
 
   getIngredientIds(String ingParam){
 
     searchedIngIDs = ingParam.split(',');
+    print("searchedIngIDs is now " + searchedIngIDs.toString());
 
     for(int i = 0; i < searchedIngIDs.length; i++){
       for(int j = 0; j < ingredientsList.length; j++){
@@ -334,12 +395,18 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     List<dynamic> tempRecipes = [];
     List<dynamic> tempIngList = [];
 
+    await getIngredients();
+
     if( userIngredientNamesList.isNotEmpty && userIngredientNamesList != null ){ // i.e. if user has 1+ ingredients
 
-      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
+      ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ",");
     }
 
-    userIngredientNamesList = ingText.split(" ").join("").split(',');
+    print("ingText is now " + ingText);
+    userIngredientNamesList = ingText.split(',');
+    print("userIngredientNamesList is now " + userIngredientNamesList.toString());
+    print("ingredientsList is now " + ingredientsList.toString());
+    print("ingText split is now " + ingText.split(',').toString());
 
     if(searchText != null && searchText.isNotEmpty) {
 
@@ -354,12 +421,14 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     } else {
 
       linkParams += '?search_type=Ingredient';
-      ingText = getIngredientIds(ingText.split(" ").join(""));
+
+      ingText = getIngredientIds(ingText);
       linkParams += '&ingredients=';
       linkParams += ingText;
     }
 
-
+    // linkParams in same page is now &search_type=Ingredient&ingredients=1,21,4261,2691,3501,601
+    print("linkParams in same page is now " + linkParams);
 
     await recipeSearch(linkParams);
 
@@ -401,6 +470,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
     setState(() {
       isLoading = false;
+      isRecipeListLoading = false;
     });
   }
 
@@ -472,7 +542,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
 
                   clearRecipeListSamePage();
                   clearResults();
-                  categories();
+                  //categories();
 
                   categoryIDs = retrievalCatIDs;
                   await searchRecipeNames( searchTextField.textField.controller.text );
@@ -481,6 +551,8 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                   // _scrollController.scrollTo(index: 150, duration: Duration(seconds: 1));
                   //Scrollable.ensureVisible(searchResultKey.currentContext);
                 }
+
+                print("totalRecipes in go button is now length " + totalRecipes.length.toString());
 
                 setState(() {
                   isLoading = false;
@@ -534,16 +606,21 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               ),
             ),
             SizedBox(height: 30.0,),
-            (isFirstSearch == true && userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
-              child: new Container(
-                child: Text(
-                  "Nothing here yet",
-                ),
-              ),
+            (userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
+              child: CircularProgressIndicator(),
+            ) : Container(),
+            ( filteredSortedTotal.isEmpty ) ? Center(
+              child: CircularProgressIndicator(),
             ) : SizedBox(
               height: 510,
               child: MyStatelessWidget(),
             ),
+            /*
+            setState(() {
+      isRecipeListLoading = true;
+    });
+            */
+
             // _scrollController
           ],
       ),

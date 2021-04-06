@@ -1,3 +1,4 @@
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 import 'package:quikquisine490/ingredient.dart';
@@ -45,6 +46,175 @@ List<dynamic> searchedIngNames = [];
 List<dynamic> missingIngredients = [];
 // used for storing user's list of ingredients
 List<dynamic> userIngredientNamesList = [];
+
+GlobalKey<AutoCompleteTextFieldState<Ingredients>> ingredientAutoCompleteKey = new GlobalKey();
+
+class InitiateIngList extends StatefulWidget {
+  IngListState createState() => IngListState();
+}
+
+void clearIngredientList(){
+
+/*  if(tempIngList != null){
+    tempIngList.clear();
+  } else {
+    tempIngList = [];
+  }*/
+
+  if(ingredientList != null){
+    ingredientList.clear();
+  } else {
+    ingredientList = [];
+  }
+}
+
+class IngListState extends State<InitiateIngList> {
+
+  @override
+  void initState() {
+    clearIngredientList();
+    _loadAutoCompleteIngredientsList();
+    super.initState();
+
+    // // focus on the ingredient autocomplete bar after it builds
+    // WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context)
+    //     .requestFocus(ingredientAutoCompleteKey .currentState.textField.focusNode));
+  }
+
+  void _loadAutoCompleteIngredientsList() async {
+    await ingredients();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IngAutocomplete();
+  }
+}
+
+class IngAutocomplete extends StatefulWidget{
+  IngAutocompleteState createState() => IngAutocompleteState();
+}
+
+class IngAutocompleteState extends State<IngAutocomplete>{
+  AutoCompleteTextField searchTextField;
+  TextEditingController controller = new TextEditingController();
+  GlobalKey<AutoCompleteTextFieldState<Ingredients>> ingredientAutoCompleteKey = new GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        child: Column(
+            children: <Widget>[
+              SizedBox(
+                width: 300,
+                child: searchTextField = AutoCompleteTextField<Ingredients>(
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16.0,
+                  ),
+                  decoration: InputDecoration(
+                    prefixIcon: Container(
+                        width: 85.0,
+                        height: 60.0,
+                        child: Icon(Icons.add)
+                    ),
+                    contentPadding: EdgeInsets.fromLTRB(10, 30, 10, 20),
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: "Ex: Tomatoes",
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.orange[700]),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  itemBuilder: (context, item){
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(item.name,
+                          style: TextStyle(
+                              fontSize: 16.0
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(15.0),
+                        ),
+                        Icon(
+                            Icons.add_circle,
+                            size: 25.0,
+                            color: Colors.green
+                        ),
+                      ],
+                    );
+                  },
+                  itemFilter: (item, query) {
+                    return item.name
+                        .toLowerCase()
+                        .startsWith(query.toLowerCase());
+                  },
+                  itemSorter: (a, b) {
+                    return a.name.compareTo(b.name);
+                  },
+                  itemSubmitted: (item) {
+                    setState(() {
+                      //searchTextField.textField.controller.text = item.name;
+                      chosenIngredients.add(item.name);
+                      //tempIngList.add(item);
+                    });
+                  },
+                  key: ingredientAutoCompleteKey,
+                  suggestions: ingredientList,
+                  suggestionsAmount: 10,
+                ),
+              ),
+
+              //this is where the list of ingredients is updated and displayed
+              Expanded(
+                  child: ListView.builder(
+                    itemCount: chosenIngredients != null ? chosenIngredients.length : 0,
+                    itemBuilder: (context, index) {
+                      return Card(
+                          child: ListTile(
+                            title: Text(chosenIngredients[index]),
+                            trailing: IconButton(
+                              icon: Icon(
+                                  Icons.delete,
+                                  size: 25.0,
+                                  color: Colors.red
+                              ),
+                              onPressed:(){
+                                // this is where we update the list when an ingredient is deleted
+                                setState(() {
+                                  // show the message that the ingredient has been removed
+                                  final snackBar = SnackBar(
+                                    duration: const Duration(milliseconds: 500),
+                                    content: Text('Removed ' + chosenIngredients[index]),
+                                  );
+                                  // and use it to show a SnackBar.
+                                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  chosenIngredients.removeWhere((ingredient) => ingredient == chosenIngredients[index]);
+                                }
+                                );
+                              },
+                            ),
+                          )
+                      );
+                    },
+                  )
+              )
+            ]
+        )
+    );
+  }
+}
 
 class SearchPage extends StatelessWidget {
   static const String _title = 'Advanced Search';
@@ -320,6 +490,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     List<dynamic> tempRecipes = [];
     List<dynamic> tempIngList = [];
     userIngredientNamesList = [];
+    bool alreadyAdded = false;
 
     for(int i = 0; i < selectedIngredientList.length; i++){
       userIngredientNamesList.add(selectedIngredientList[i].name);
@@ -331,17 +502,18 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     if ( ingText.isNotEmpty && (ingText != null) ) {
 
-      ingText += ", " + userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "");
+      ingText += "," + userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ",");
+      alreadyAdded = true;
       print("ingText is right now " + ingText);
     }
 
-    if( userIngredientNamesList.isNotEmpty && (userIngredientNamesList != null) ){
+    if( alreadyAdded == false && userIngredientNamesList.isNotEmpty && (userIngredientNamesList != null) ){
 
       ingText += userIngredientNamesList.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ",");
       print("ingText is right now " + ingText);
     }
 
-    userIngredientNamesList = ingText.split(" ").join("").split(',');
+    userIngredientNamesList = ingText.split(',');
     print("userIngredientNamesList is now " + userIngredientNamesList.toString());
 
     if( searchText != null && searchText.isNotEmpty && searchType != searchTypeTextName ){
@@ -372,7 +544,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       if(ingText.isNotEmpty){
 
-        ingParam = getIngredientIds(ingText.split(" ").join(""));
+        ingParam = getIngredientIds(ingText);
         linkParams += '&ingredients=';
         linkParams += ingParam;
       }
@@ -407,7 +579,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       if(ingText.isNotEmpty){
 
-        ingParam = getIngredientIds(ingText.split(" ").join(""));
+        ingParam = getIngredientIds(ingText);
         linkParams += '&ingredients=';
         linkParams += ingParam;
       }
@@ -1016,7 +1188,11 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                             SizedBox(height: 40.0,),
                             isIngredientLoading ? Center(
                               child: CircularProgressIndicator(),
-                            ) : new TextField(
+                            ) : Container(
+                              height: 320,
+                              child: InitiateIngList(),
+                            ),
+                            /*new TextField(
                               controller: onlyIngredientsController,
                               decoration: InputDecoration(
                                 hintText: 'Search ingredients',
@@ -1028,7 +1204,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 ),
                                 border: const OutlineInputBorder(),
                               ),
-                            ),
+                            ),*/
                             SizedBox(height: 25.0,),
                             new CheckboxListTile(
                               title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
@@ -1071,7 +1247,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 errMsg = "";
                                 isIngredientErr = false;
 
-                                if( isUserIngListChecked == false && onlyIngredientsController.text.trim().isEmpty ) {
+                                if( isUserIngListChecked == false && chosenIngredients.isEmpty ) {
 
                                   errMsg += "Error: An ingredient must be entered.";
                                   isIngredientErr = true;
@@ -1082,9 +1258,11 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
-                                  await metaSearch(searchTypeTextIng, null, onlyIngredientsController.text);
+                                  print("chosenIngredients is " + chosenIngredients.toString());
+                                  await metaSearch(searchTypeTextIng, null, chosenIngredients.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ","));
                                   searchedFromOtherPg = true;
                                   Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                  chosenIngredients.clear();
                                   searchResultLabel = "Advanced Search Results";
                                 }
 

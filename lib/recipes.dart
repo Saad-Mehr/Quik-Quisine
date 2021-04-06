@@ -189,7 +189,8 @@ class RecipePage extends StatelessWidget {
       home: DefaultTabController(
           length: 2,
           child: Scaffold(
-              appBar: AppBar(title: Text(_title),
+              appBar: AppBar(
+                title: Text(_title),
                 backgroundColor: Colors.teal[400],
                 leading: IconButton(icon:Icon(Icons.arrow_back),
                   onPressed:() => Navigator.pop(context, false),

@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 List<Ingredients> ingredientList = [];
 
 // this is used for advanced search (not saved)
-//List<Ingredients> tempIngList = [];
 List<dynamic> chosenIngredients = [];
 
 class Ingredients {

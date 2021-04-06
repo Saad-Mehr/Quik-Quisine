@@ -17,8 +17,8 @@ import 'user.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 
 AutoCompleteTextField searchTextField;
-TextEditingController controller = new TextEditingController();
-ItemScrollController _scrollController = ItemScrollController();
+//TextEditingController controller = new TextEditingController();
+//ItemScrollController _scrollController = ItemScrollController();
 String searchResultLabel = "Recipes based on your ingredients";
 bool isLoading = false;
 bool isRecipeListLoading = false;
@@ -31,22 +31,18 @@ class InitiateRecipeList extends StatefulWidget {
 
 Future<void> clearRecipeListSamePage() async {
 
-  //List temp = recipeList;
-
   if(recipeList != null){
     recipeList.clear();
   } else {
     recipeList = [];
   }
-
-  //recipeList = temp;
 }
 
 class RecipeListState extends State<InitiateRecipeList> {
   @override
   void initState() {
 
-    clearRecipeListSamePage();
+    //clearRecipeListSamePage();
     //print("savedRecipesList in recipelist initstate is " + savedRecipesList.toString());
 
     //print("recipeList is " + recipeList.toString());
@@ -58,7 +54,7 @@ class RecipeListState extends State<InitiateRecipeList> {
       //_loadAutoCompleteRecipeList();
     }*/
 
-    _loadAutoCompleteRecipeList();
+    //_loadAutoCompleteRecipeList();
     //savedRecipesList = recipeList;
 
     //print("recipeList after operation is " + recipeList.toString());
@@ -103,9 +99,12 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                   fontSize: 16.0,
                 ),
                 decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(10, 30, 10, 20),
                   hintText: 'Search recipes',
                   prefixIcon: Icon(Icons.search),
                   isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
                   focusColor: Colors.red,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -120,9 +119,15 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                       Text(item.name,
                         style: TextStyle(
                             fontSize: 16.0
-                        ),),
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsets.all(15.0),
+                      ),
+                      Icon(
+                          Icons.add_circle,
+                          size: 25.0,
+                          color: Colors.green[400]
                       ),
                     ],
                   );
@@ -227,6 +232,53 @@ class BasicSearch extends StatelessWidget {
     }
   }
 
+  /*  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+          title: Text(_title),
+          backgroundColor: Colors.deepOrangeAccent,
+          actions: <Widget>[
+            PopupMenuButton<String>(
+                onSelected: (option) => optionAction(option, context),
+                itemBuilder: (BuildContext context) {
+                  return MenuOptions.options.map((String option){
+                    return PopupMenuItem<String>(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList();
+                }
+            )
+          ],
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => {
+              searchedFromOtherPg = false,
+              Navigator.pop(context, false),
+            }
+          ),
+          bottom: TabBar(
+            tabs:[
+              Tab(icon: Icon(Icons.search_sharp)),
+              Tab(icon: Icon(Icons.kitchen_sharp)),
+            ],
+          ),
+        ),
+          body: TabBarView(
+            children: [
+              BasicSearchWidget(),
+              MyMealPlanner(),
+            ],
+          ),
+      ),
+      ),
+    );
+  }*/
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -279,7 +331,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     });
 
     ingredientsList.clear();
-    clearRecipeListSamePage();
+    //clearRecipeListSamePage();
 
     if(searchedFromOtherPg == false){
       clearResults();
@@ -485,20 +537,30 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
         child: new Column(
           children: <Widget>[
             SizedBox(height: 30.0,),
-            Text(
-              "Discover",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black54,
+            new Card(
+              //key: searchResultKey,
+              child: new Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(
+                      color: Colors.amber,
+                      width: 1.3, // Underline thickness
+                    ))
+                ),
+                child: Text(
+                  "Discover",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.black54,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 30.0,),
             InitiateRecipeList(),
             SizedBox(height: 30.0,),
-            isLoading ? Center(
-              child: CircularProgressIndicator(),
-            ) : new RaisedButton(
+            new RaisedButton(
               child: Text('Go!'),
               color: Colors.orange[600],
               textColor: Colors.white,
@@ -540,9 +602,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                     });
                   }
 
-                  clearRecipeListSamePage();
                   clearResults();
-                  //categories();
 
                   categoryIDs = retrievalCatIDs;
                   await searchRecipeNames( searchTextField.textField.controller.text );
@@ -584,12 +644,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
             new Card(
               //key: searchResultKey,
               child: new Container(
-                padding: EdgeInsets.only(
-                  top: 10,
-                  bottom: 10, // Space between underline and text
-                  right: 10,
-                  left: 10,
-                ),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(
                       color: Colors.amber,
@@ -606,10 +661,10 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               ),
             ),
             SizedBox(height: 30.0,),
-            (userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
+            /*(userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
               child: CircularProgressIndicator(),
-            ) : Container(),
-            ( filteredSortedTotal.isEmpty ) ? Center(
+            ) : Container(),*/
+            ( filteredSortedTotal.isEmpty && ( searchedFromOtherPg == false) ) ? Center(
               child: CircularProgressIndicator(),
             ) : SizedBox(
               height: 510,

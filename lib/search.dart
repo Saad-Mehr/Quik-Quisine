@@ -2,6 +2,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 import 'package:quikquisine490/ingredient.dart';
+import 'package:quikquisine490/recipe.dart';
 import 'package:quikquisine490/recipes.dart';
 import 'package:quikquisine490/searchRetrieval.dart';
 import 'package:quikquisine490/user.dart';
@@ -47,19 +48,29 @@ List<dynamic> missingIngredients = [];
 // used for storing user's list of ingredients
 List<dynamic> userIngredientNamesList = [];
 
+AutoCompleteTextField recTextField;
+//TextEditingController recController = new TextEditingController();
 GlobalKey<AutoCompleteTextFieldState<Ingredients>> ingredientAutoCompleteKey = new GlobalKey();
+
+class InitRecipeList extends StatefulWidget {
+
+  RecipesState createState() => RecipesState();
+}
 
 class InitiateIngList extends StatefulWidget {
   IngListState createState() => IngListState();
 }
 
-void clearIngredientList(){
+Future<void> clearRecipeListSamePage() async {
 
-/*  if(tempIngList != null){
-    tempIngList.clear();
+  if(recipeList != null){
+    recipeList.clear();
   } else {
-    tempIngList = [];
-  }*/
+    recipeList = [];
+  }
+}
+
+void clearIngredientList(){
 
   if(ingredientList != null){
     ingredientList.clear();
@@ -68,17 +79,43 @@ void clearIngredientList(){
   }
 }
 
+class RecipesState extends State<InitRecipeList> {
+  @override
+  void initState() {
+
+    //clearRecipeListSamePage();
+    //_loadAutoCompleteRecipeList();
+
+    if(searchedFromOtherPg == false) {
+      searchResultLabel = "Recipes based on your ingredients";
+    }
+
+    super.initState();
+  }
+
+  void _loadAutoCompleteRecipeList() async {
+    print("Executing queries in recipes()");
+    await recipes();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AutocompleteRecipeSearch();
+  }
+}
+
 class IngListState extends State<InitiateIngList> {
 
   @override
   void initState() {
     clearIngredientList();
-    _loadAutoCompleteIngredientsList();
-    super.initState();
 
-    // // focus on the ingredient autocomplete bar after it builds
-    // WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context)
-    //     .requestFocus(ingredientAutoCompleteKey .currentState.textField.focusNode));
+    if(ingredientList.length == 0){
+      print("ingredients list length is " + ingredientsList.length.toString());
+      _loadAutoCompleteIngredientsList();
+    }
+
+    super.initState();
   }
 
   void _loadAutoCompleteIngredientsList() async {
@@ -91,8 +128,87 @@ class IngListState extends State<InitiateIngList> {
   }
 }
 
+class AutocompleteRecipeSearch extends StatefulWidget{
+  AutoRecipeSearchState createState() => AutoRecipeSearchState();
+}
+
 class IngAutocomplete extends StatefulWidget{
   IngAutocompleteState createState() => IngAutocompleteState();
+}
+
+class AutoRecipeSearchState extends State<AutocompleteRecipeSearch>{
+
+  GlobalKey<AutoCompleteTextFieldState<Recipes>> recSearchKey = new GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+        child: Container(
+            child: Column(
+                children: <Widget>[
+                  recTextField = AutoCompleteTextField<Recipes>(
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.0,
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.fromLTRB(10, 30, 10, 20),
+                      hintText: 'Search recipes',
+                      prefixIcon: Icon(Icons.search),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.white,
+                      focusColor: Colors.red,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                    itemBuilder: (context, item){
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(item.name,
+                            style: TextStyle(
+                                fontSize: 16.0
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(15.0),
+                          ),
+                          Icon(
+                              Icons.add_circle,
+                              size: 25.0,
+                              color: Colors.green[400]
+                          ),
+                        ],
+                      );
+                    },
+                    itemFilter: (item, query) {
+                      return item.name
+                          .toLowerCase()
+                          .contains(query.toLowerCase());
+                    },
+                    itemSorter: (a, b) {
+                      return a.name.compareTo(b.name);
+                    },
+                    itemSubmitted: (item) {
+                      setState(() {
+                        recTextField.textField.controller.text = item.name;
+                      });
+                    },
+                    key: recSearchKey,
+                    suggestions: recipeList,
+                    suggestionsAmount: 10,
+                    clearOnSubmit: false,
+                  ),
+                ]
+            )
+        )
+    );
+  }
 }
 
 class IngAutocompleteState extends State<IngAutocomplete>{
@@ -150,7 +266,7 @@ class IngAutocompleteState extends State<IngAutocomplete>{
                         Icon(
                             Icons.add_circle,
                             size: 25.0,
-                            color: Colors.green
+                            color: Colors.green[400]
                         ),
                       ],
                     );
@@ -165,9 +281,7 @@ class IngAutocompleteState extends State<IngAutocomplete>{
                   },
                   itemSubmitted: (item) {
                     setState(() {
-                      //searchTextField.textField.controller.text = item.name;
                       chosenIngredients.add(item.name);
-                      //tempIngList.add(item);
                     });
                   },
                   key: ingredientAutoCompleteKey,
@@ -819,35 +933,47 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                       child: Column(
                         children: [
                           SizedBox(height: 40.0,),
-                          Text(
-                            "Input name (optional)",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Input name (optional)",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
                             ),
                           ),
                           SizedBox(height: 20.0,),
-                          TextField(
-                            controller: recipesAllController,
-                            decoration: InputDecoration(
-                              hintText: 'Search recipe name',
-                              prefixIcon: Icon(Icons.search),
-                              isDense: true,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
-                              ),
-                              border: const OutlineInputBorder(),
-                            ),
-                          ),
+                          InitRecipeList(),
                           SizedBox(height: 40.0,),
-                          Text(
-                            "Check Categories",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Check Categories",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
                             ),
                           ),
                           SizedBox(height: 20.0,),
@@ -881,12 +1007,24 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               )
                           ),
                           SizedBox(height: 40.0,),
-                          Text(
-                            "Check Preferences",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Check Preferences",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
                             ),
                           ),
                           SizedBox(height: 20.0,),
@@ -920,44 +1058,56 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               )
                           ),
                           SizedBox(height: 40.0,),
-                          Text(
-                            "Input Ingredients",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black54,
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Input Ingredients",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
                             ),
                           ),
-                          SizedBox(height: 50.0,),
+                          SizedBox(height: 20.0,),
                           isIngredientLoading ? Center(
                             child: CircularProgressIndicator(),
-                          ) : new TextField(
-                            controller: ingredientsAllController,
-                            decoration: InputDecoration(
-                              hintText: 'Search ingredients',
-                              prefixIcon: Icon(Icons.search),
-                              isDense: true,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
-                              ),
-                              border: const OutlineInputBorder(),
-                            ),
+                          ) : Container(
+                            height: 280,
+                            child: InitiateIngList(),
                           ),
                           SizedBox(height: 25.0,),
-                          new CheckboxListTile(
-                            title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
-                            value: isUserIngListChecked,
-                            activeColor: Colors.green,
-                            checkColor: Colors.white,
-                            onChanged: (bool value) {
-                              setState(() {
-
-                                isUserIngListChecked = value;
-                              });
-                            },
+                          new Card(
+                            child: new Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: new CheckboxListTile(
+                                title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
+                                value: isUserIngListChecked,
+                                activeColor: Colors.green,
+                                checkColor: Colors.white,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    isUserIngListChecked = value;
+                                  });
+                                },
+                              ),
+                            ),
                           ),
-                          SizedBox(height: 5.0,),
                           isAllErr ? Center(
                               child: Text(
                                 errMsg,
@@ -966,9 +1116,8 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   fontSize: 18,
                                   color: Colors.red[400],
                                 ),
-                              )
-                          ) : SizedBox(height: 21.0,),
-                          SizedBox(height: 1.0,),
+                              ),
+                          ) : SizedBox(height: 5.0,),
                           isLoading ? Center(
                             child: CircularProgressIndicator(),
                           ) : new RaisedButton(
@@ -1005,7 +1154,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 clearResults();
                                 isIngredientSearch = true;
-                                await metaSearch(searchTypeTextAll, recipesAllController.text, ingredientsAllController.text);
+                                print("recTextField is " + recTextField.textField.controller.text);
+                                print("chosenIngredients is " + chosenIngredients.toString());
+                                await metaSearch(searchTypeTextAll, recTextField.textField.controller.text, chosenIngredients.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ","));
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
                                 searchResultLabel = "Advanced Search Results";
@@ -1026,26 +1177,25 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                       child: Column(
                           children: [
                             SizedBox(height: 40.0,),
-                            TextField(
-                              controller: onlyCategoriesController,
-                              decoration: InputDecoration(
-                                hintText: 'Search recipes',
-                                prefixIcon: Icon(Icons.search),
-                                isDense: true,
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
-                                ),
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
+                            InitRecipeList(),
                             SizedBox(height: 40.0,),
-                            Text(
-                              "Categories",
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.black54,
+                            new Card(
+                              child: new Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(
+                                      color: Colors.amber,
+                                      width: 1.3, // Underline thickness
+                                    ))
+                                ),
+                                child: Text(
+                                  "Categories",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
                               ),
                             ),
                             SizedBox(height: 20.0,),
@@ -1073,7 +1223,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                     ))
                                 )
                             ),
-                            SizedBox(height: 50.0,),
+                            SizedBox(height: 40.0,),
                             isLoading ? Center(
                               child: CircularProgressIndicator(),
                             ) : new RaisedButton(
@@ -1087,7 +1237,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 clearResults();
 
-                                await metaSearch(searchTypeTextCat, onlyCategoriesController.text, null);
+                                await metaSearch(searchTypeTextCat, recTextField.textField.controller.text, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
                                 searchResultLabel = "Advanced Search Results";
@@ -1106,26 +1256,25 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                       child: Column(
                           children: [
                             SizedBox(height: 40.0,),
-                            TextField(
-                              controller: onlyPreferencesController,
-                              decoration: InputDecoration(
-                                hintText: 'Search recipes',
-                                prefixIcon: Icon(Icons.search),
-                                isDense: true,
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
-                                ),
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
+                            InitRecipeList(),
                             SizedBox(height: 40.0,),
-                            Text(
-                              "Preferences",
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.black54,
+                            new Card(
+                              child: new Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(
+                                      color: Colors.amber,
+                                      width: 1.3, // Underline thickness
+                                    ))
+                                ),
+                                child: Text(
+                                  "Preferences",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
                               ),
                             ),
                             SizedBox(height: 20.0,),
@@ -1153,7 +1302,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                     ))
                                 )
                             ),
-                            SizedBox(height: 50.0,),
+                            SizedBox(height: 40.0,),
                             isLoading ? Center(
                               child: CircularProgressIndicator(),
                             ) : new RaisedButton(
@@ -1167,12 +1316,13 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 clearResults();
 
-                                await metaSearch(searchTypeTextPref, onlyPreferencesController.text, null);
+                                await metaSearch(searchTypeTextPref, recTextField.textField.controller.text, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
                                 searchResultLabel = "Advanced Search Results";
                               },
                             ),
+                            SizedBox(height: 40.0,),
                           ]
                       ),
                     ),
@@ -1192,35 +1342,31 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               height: 320,
                               child: InitiateIngList(),
                             ),
-                            /*new TextField(
-                              controller: onlyIngredientsController,
-                              decoration: InputDecoration(
-                                hintText: 'Search ingredients',
-                                prefixIcon: Icon(Icons.search),
-                                isDense: true,
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  borderSide: BorderSide(color: Colors.orange[200], width: 1.5),
-                                ),
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),*/
                             SizedBox(height: 25.0,),
-                            new CheckboxListTile(
-                              title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
-                              value: isUserIngListChecked,
-                              activeColor: Colors.green,
-                              checkColor: Colors.white,
-                              onChanged: (bool value) {
-                                setState(() {
-
-                                  isUserIngListChecked = value;
-
-                                  print("isUserIngListChecked is now " + isUserIngListChecked.toString());
-                                });
-                              },
+                            new Card(
+                              child: new Container(
+                                padding: EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(
+                                      color: Colors.amber,
+                                      width: 1.3, // Underline thickness
+                                    ))
+                                ),
+                                child: new CheckboxListTile(
+                                  title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
+                                  value: isUserIngListChecked,
+                                  activeColor: Colors.green,
+                                  checkColor: Colors.white,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      isUserIngListChecked = value;
+                                      print("isUserIngListChecked is now " + isUserIngListChecked.toString());
+                                    });
+                                  },
+                                ),
+                              ),
                             ),
-                            SizedBox(height: 5.0,),
+                            SizedBox(height: 5.0),
                             isIngredientErr ? Center(
                                 child: Text(
                                   errMsg,
@@ -1249,7 +1395,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 if( isUserIngListChecked == false && chosenIngredients.isEmpty ) {
 
-                                  errMsg += "Error: An ingredient must be entered.";
+                                  errMsg += "Please enter an ingredient";
                                   isIngredientErr = true;
                                   setState(() {
                                     isLoading = false; //Data is loading
@@ -1268,6 +1414,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                               },
                             ),
+                            SizedBox(height: 40.0,),
                           ]
                       ),
                     ),

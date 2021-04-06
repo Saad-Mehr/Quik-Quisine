@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quikquisine490/recipe.dart';
 import 'HomePage.dart';
 import 'user.dart';
 import 'SignInPage.dart';
@@ -122,6 +123,7 @@ class _MyappState extends State<Myapp> {
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
                           if (response_code == 200)
                           {
+                            await recipes();
                             setState((){isLoading = false;});
                             if(selectedIngredientList.isEmpty) {
                               Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));

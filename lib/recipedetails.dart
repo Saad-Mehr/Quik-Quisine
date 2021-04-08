@@ -6,7 +6,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/services.dart';
 List<dynamic> recipeRatings = new List();
-
+int recentRating;
+String recentReview;
 Future getReviews(int id) async{
   recipeRatings.clear();
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes/'+id.toString()+'/ratings', headers: headers);
@@ -133,6 +134,7 @@ Future _ackAlert2(BuildContext context,int id, double AverageRating, String revi
                   FilteringTextInputFormatter.allow(RegExp(r'[0-5]'))
                 ],
                 onChanged: (String val) => newRating = int.tryParse(val),// Only numbers can be entered
+                maxLength: 1,
               ),
             ],
           ),
@@ -141,8 +143,12 @@ Future _ackAlert2(BuildContext context,int id, double AverageRating, String revi
           FlatButton(
             child: Text('Submit'),
             onPressed: () {
-              setReviews(id, newRating, newReview);
-              Navigator.of(context).pop();
+              if(newRating!=null && newReview!=null) {
+                setReviews(id, newRating, newReview);
+                recentRating = newRating;
+                recentReview = newReview;
+                Navigator.of(context).pop();
+              }
             },
           ),
         ],
@@ -165,6 +171,10 @@ class recipedetails extends StatelessWidget {
   @override
   Widget build(BuildContext context,) {
     getReviews(id);
+    if(recentReview != null)
+      review = recentReview;
+    if(recentRating != null)
+      AverageRating = recentRating.toDouble();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: title,

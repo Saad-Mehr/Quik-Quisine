@@ -41,6 +41,8 @@ Future retrieveList() async{
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   mealPlannerRecipes = data;
+  for(int i = 0; i < mealPlannerRecipes.length;i++)
+  print("in meal planner" + totalRecipes[i]['get_image_url'].toString());
   //print('mealPlanner data is ------------------------ ' + mealPlannerRecipes.toString());
   //print('mealPlanner[0] data is ------------------------ ' + mealPlannerRecipes[0].toString());
   //print('mealPlannerRecipes images are: ------------------------- ' + mealPlannerRecipes[0]['get_image_url'].toString());
@@ -112,7 +114,7 @@ if(review == null){
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n" + subtitle + "\n" + serving + "\nIngredients:\n" + ingredients + '\nInstructions:\n' + instructions +'\nRating:'),
+              Text(title + "\n" + subtitle + "\n" + serving + "\nIngredients:\n" + ingredients + '\nRating:'),
               SmoothStarRating(
                 allowHalfRating: true,
                 starCount: 5,
@@ -150,7 +152,10 @@ if(review == null){
   );
 }
 
-Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String serving, String instructions, int id) {
+Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions,String serving,double AverageRating, String review, int id) {
+  if(review == null){
+    review = 'No reviews yet.';
+  }
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -160,7 +165,15 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n" + subtitle + "\n" + serving + '\n\nInstructions:\n' + instructions)
+              Text(title + "\n" + subtitle + "\n" + serving +'\nRating:'),
+              SmoothStarRating(
+                allowHalfRating: true,
+                starCount: 5,
+                rating: AverageRating,
+                size: 20,
+                color: Colors.amber,
+                borderColor: Colors.black,
+              ),
             ],
           ),
         ),
@@ -173,6 +186,17 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
               Navigator.of(context).pop();
             },
           ),
+          FlatButton(
+            child: Text('More Details'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => new recipedetails(thumbnail,title,subtitle,instructions,serving,"ingredients",id,AverageRating,review),
+                ),
+              );
+            },
+          )
         ],
       );
     },
@@ -184,6 +208,7 @@ class RecipePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    retrieveList();
     return MaterialApp(
       title: _title,
       home: DefaultTabController(
@@ -359,7 +384,7 @@ class _ArticleDescription extends StatelessWidget {
             children: <Widget>[
               Text(
                 '$title',
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -507,15 +532,17 @@ class CustomListItemThree extends StatelessWidget {
   final String subtitle;
   final String serving;
   final String instructions;
-  final double AverageRating;
+  double AverageRating;
   final String review;
   final int id;
 
   @override
   Widget build(BuildContext context) {
+    if(AverageRating==null)
+      AverageRating = 0;
     return GestureDetector(
       onTap: () {
-        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.serving, this.instructions, this.id);
+        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.instructions,this.serving,this.AverageRating, this.review, this.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -591,11 +618,19 @@ class MyMealPlanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    retrieveList();
+
     return ListView.builder(
       itemCount: mealPlannerRecipes.length,
       itemBuilder: (BuildContext context,index){
-        return CustomListItemThree(
+        return new Card(
+          child: new Container(
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: 10, // Space between underline and text
+              right: 10,
+              left: 10,
+            ),
+        child: CustomListItemThree(
           thumbnail: Container(
             child: Image.network(mealPlannerRecipes[index]['get_image_url'], fit: BoxFit.fill,),
           ),
@@ -606,6 +641,8 @@ class MyMealPlanner extends StatelessWidget {
           id: mealPlannerRecipes[index]['id'],
           AverageRating: double.parse(totalRecipes[index]['AverageRating']),
           review: totalRecipes[index]['review'],
+        ),
+        ),
         );
       },
     );

@@ -6,6 +6,7 @@ import 'SignInPage.dart';
 import 'search.dart';
 import 'userIngredientList.dart';
 import 'SearchResultsSamePage.dart';
+import 'ingredient.dart';
 
 
 void main() {
@@ -122,9 +123,10 @@ class _MyappState extends State<Myapp> {
                           setState((){isLoading = true;});
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
                           if (response_code == 200)
-                          {
+                           {
                             await recipes();
                             setState((){isLoading = false;});
+                            await existingIngredients();
                             if(selectedIngredientList.isEmpty) {
                               Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
                             }

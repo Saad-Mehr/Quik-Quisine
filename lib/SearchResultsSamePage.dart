@@ -20,9 +20,10 @@ AutoCompleteTextField searchTextField;
 //TextEditingController controller = new TextEditingController();
 //ItemScrollController _scrollController = ItemScrollController();
 String searchResultLabel = "Recipes based on your ingredients";
-bool isLoading = false;
+//bool isLoading = false;
 bool isRecipeListLoading = false;
 bool searchedFromOtherPg = false;
+bool isFirstSearch = true;
 
 class InitiateRecipeList extends StatefulWidget {
 
@@ -42,7 +43,7 @@ class RecipeListState extends State<InitiateRecipeList> {
   @override
   void initState() {
 
-    //clearRecipeListSamePage();
+    clearRecipeListSamePage();
     //print("savedRecipesList in recipelist initstate is " + savedRecipesList.toString());
 
     //print("recipeList is " + recipeList.toString());
@@ -54,7 +55,7 @@ class RecipeListState extends State<InitiateRecipeList> {
       //_loadAutoCompleteRecipeList();
     }*/
 
-    //_loadAutoCompleteRecipeList();
+    _loadAutoCompleteRecipeList();
     //savedRecipesList = recipeList;
 
     //print("recipeList after operation is " + recipeList.toString());
@@ -116,9 +117,13 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text(item.name,
-                        style: TextStyle(
-                            fontSize: 16.0
+                      Expanded(
+                        child: Text(item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 16.0
+                          ),
                         ),
                       ),
                       Padding(
@@ -321,16 +326,13 @@ class BasicSearchWidget extends StatefulWidget {
 
 class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProviderStateMixin {
 
-  bool isFirstSearch = true;
   var db = new Mysql();
 
   void initState() {
 
-    setState(() {
-      isRecipeListLoading = true;
-    });
+    super.initState();
 
-    ingredientsList.clear();
+    ingList.clear();
     //clearRecipeListSamePage();
 
     if(searchedFromOtherPg == false){
@@ -348,8 +350,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
       categories();
     }
 
-    isLoading = false;
-    super.initState();
+    //isLoading = false;
   }
 
 
@@ -368,7 +369,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
             r[results.fields[i].name] = row[i];
           }
 
-          ingredientsList.add(r);
+          ingList.add(r);
         });
       });
     });
@@ -383,11 +384,11 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     print("searchedIngIDs is now " + searchedIngIDs.toString());
 
     for(int i = 0; i < searchedIngIDs.length; i++){
-      for(int j = 0; j < ingredientsList.length; j++){
-        if(ingredientsList[j]['name'] == searchedIngIDs[i]){
+      for(int j = 0; j < ingList.length; j++){
+        if(ingList[j]['name'] == searchedIngIDs[i]){
 
-          searchedIngNames.add(ingredientsList[j]['name']);
-          searchedIngIDs[i] = ingredientsList[j]['id'].toString();
+          searchedIngNames.add(ingList[j]['name']);
+          searchedIngIDs[i] = ingList[j]['id'].toString();
         }
       }
     }
@@ -447,6 +448,10 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     List<dynamic> tempRecipes = [];
     List<dynamic> tempIngList = [];
 
+    setState(() {
+      isRecipeListLoading = true;
+    });
+
     await getIngredients();
 
     if( userIngredientNamesList.isNotEmpty && userIngredientNamesList != null ){ // i.e. if user has 1+ ingredients
@@ -457,7 +462,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     print("ingText is now " + ingText);
     userIngredientNamesList = ingText.split(',');
     print("userIngredientNamesList is now " + userIngredientNamesList.toString());
-    print("ingredientsList is now " + ingredientsList.toString());
+    print("ingredientsList is now " + ingList.toString());
     print("ingText split is now " + ingText.split(',').toString());
 
     if(searchText != null && searchText.isNotEmpty) {
@@ -521,8 +526,8 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     recipesPageTitle = "Search Results";
 
     setState(() {
-      isLoading = false;
       isRecipeListLoading = false;
+      isFirstSearch = false;
     });
   }
 
@@ -567,7 +572,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               onPressed: () async {
 
                 setState(() {
-                  isLoading = true;
+                  isRecipeListLoading = true;
                 });
 
                 searchedFromOtherPg = false;
@@ -615,7 +620,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                 print("totalRecipes in go button is now length " + totalRecipes.length.toString());
 
                 setState(() {
-                  isLoading = false;
+                  isRecipeListLoading = false;
                 });
               },
             ),
@@ -626,10 +631,9 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                 textColor: Colors.white,
                 onPressed: () async {
 
-                  print("searchedFromOtherPg was " + searchedFromOtherPg.toString());
                   searchedFromOtherPg = false;
-                  print("searchedFromOtherPg is now  " + searchedFromOtherPg.toString());
-                  print("totalRecipes are of length " + totalRecipes.length.toString() + " with titles " + totalRecipes[0]['name']);
+                  /*print("searchedFromOtherPg is now  " + searchedFromOtherPg.toString());
+                  print("totalRecipes are of length " + totalRecipes.length.toString() + " with titles " + totalRecipes[0]['name']);*/
                   Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
                 }
             ),
@@ -661,22 +665,47 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               ),
             ),
             SizedBox(height: 30.0,),
-            /*(userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
+            /*
+            (userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
               child: CircularProgressIndicator(),
-            ) : Container(),*/
-            ( filteredSortedTotal.isEmpty && ( searchedFromOtherPg == false) ) ? Center(
+            ) : Container(),
+            */
+            /*(if came back with back arrow) then (reload to show recipes based on ingredients) (else)
+
+            (if recipes are loading) then (progress)
+                (else)
+                    (if recipes.length > 0) then (show recipes)
+                        (else) show textbox
+            */
+
+            (isRecipeListLoading == true || isFirstSearch == true) ? Center(
+              child: CircularProgressIndicator(),
+            ) : (
+                totalRecipes.length > 0 ?
+                SizedBox(
+                  height: 510,
+                  child: MyStatelessWidget(),
+                ) : Text(
+                    "No results to display",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black54,
+                    ),
+                )
+            ),
+
+            /*SizedBox(
+              height: 510,
+              child: MyStatelessWidget(),
+            ),*/
+
+            /*( filteredSortedTotal.isEmpty && ( searchedFromOtherPg == false ) ) ? Center(
               child: CircularProgressIndicator(),
             ) : SizedBox(
               height: 510,
               child: MyStatelessWidget(),
-            ),
-            /*
-            setState(() {
-      isRecipeListLoading = true;
-    });
-            */
+            ),*/
 
-            // _scrollController
           ],
       ),
       ),

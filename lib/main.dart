@@ -124,13 +124,16 @@ class _MyappState extends State<Myapp> {
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
                           if (response_code == 200)
                            {
-                            await recipes();
+                            //await recipes();
                             setState((){isLoading = false;});
                             await existingIngredients();
                             if(selectedIngredientList.isEmpty) {
                               Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
                             }
                             else {
+                              setState(() {
+                                isRecipeListLoading = true;
+                              });
                               Navigator.push(context,MaterialPageRoute(builder: (context) => BasicSearch()));
                             }
                           } else if ( response_code == 401 ) {

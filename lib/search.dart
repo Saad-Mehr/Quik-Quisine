@@ -41,7 +41,7 @@ List<dynamic> recipeReviews = [];
 List<dynamic> sortedRecipeIng = [];
 List<dynamic> sortedRecipeIngNames = [];
 List<dynamic> filteredSortedIng = [];
-List<Map<dynamic,dynamic>> ingredientsList = [];
+List<Map<dynamic,dynamic>> ingList = [];
 List<dynamic> searchedIngIDs = [];
 List<dynamic> searchedIngNames = [];
 List<dynamic> missingIngredients = [];
@@ -83,8 +83,8 @@ class RecipesState extends State<InitRecipeList> {
   @override
   void initState() {
 
-    //clearRecipeListSamePage();
-    //_loadAutoCompleteRecipeList();
+    clearRecipeListSamePage();
+    _loadAutoCompleteRecipeList();
 
     if(searchedFromOtherPg == false) {
       searchResultLabel = "Recipes based on your ingredients";
@@ -111,7 +111,7 @@ class IngListState extends State<InitiateIngList> {
     clearIngredientList();
 
     if(ingredientList.length == 0){
-      print("ingredients list length is " + ingredientsList.length.toString());
+      print("ingredients list length is " + ingredientList.length.toString());
       _loadAutoCompleteIngredientsList();
     }
 
@@ -170,9 +170,13 @@ class AutoRecipeSearchState extends State<AutocompleteRecipeSearch>{
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text(item.name,
-                            style: TextStyle(
-                                fontSize: 16.0
+                          Expanded(
+                            child: Text(item.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 16.0
+                              ),
                             ),
                           ),
                           Padding(
@@ -255,9 +259,13 @@ class IngAutocompleteState extends State<IngAutocomplete>{
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Text(item.name,
-                          style: TextStyle(
-                              fontSize: 16.0
+                        Expanded(
+                          child: Text(item.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 16.0
+                            ),
                           ),
                         ),
                         Padding(
@@ -489,7 +497,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   bool isIngredientLoading = false;
   bool isCatChecked = false;
   bool isPrefChecked = false;
-  bool isUserIngListChecked = false;
+  //bool isUserIngListChecked = false;
   bool isAllErr = false;
   bool isIngredientErr = false;
   String errMsg = "";
@@ -517,12 +525,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
             r[results.fields[i].name] = row[i];
           }
 
-          ingredientsList.add(r);
+          ingList.add(r);
         });
       });
     });
 
-    print('ingredientsList is ' + ingredientsList.toString());
+    print('ingredientsList is ' + ingList.toString());
 
     setState(() {
       isIngredientLoading = false;
@@ -534,14 +542,14 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     searchedIngIDs = ingParam.split(',');
 
     print("searchedIngIDs in search.dart is now " + searchedIngIDs.toString());
-    print("ingredientsList in search.dart is now " + ingredientsList.toString());
+    print("ingredientsList in search.dart is now " + ingredientList.toString());
 
     for(int i = 0; i < searchedIngIDs.length; i++){
-      for(int j = 0; j < ingredientsList.length; j++){
-        if(ingredientsList[j]['name'] == searchedIngIDs[i]){
+      for(int j = 0; j < ingredientList.length; j++){
+        if(ingredientList[j].name == searchedIngIDs[i]){
 
-          searchedIngNames.add(ingredientsList[j]['name']);
-          searchedIngIDs[i] = ingredientsList[j]['id'].toString();
+          searchedIngNames.add(ingredientList[j].id);
+          searchedIngIDs[i] = ingredientList[j].id.toString();
         }
       }
     }
@@ -606,9 +614,13 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     userIngredientNamesList = [];
     bool alreadyAdded = false;
 
+    print("selectedIngredientList is " + selectedIngredientList.toString());
+
     for(int i = 0; i < selectedIngredientList.length; i++){
       userIngredientNamesList.add(selectedIngredientList[i].name);
     }
+
+    print("userIngredientNamesList is " + userIngredientNamesList.toString());
 
     if(ingredientText != null) {
       ingText = ingredientText.trim();
@@ -656,7 +668,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
         linkParams += categParam;
       }
 
-      if(ingText.isNotEmpty){
+      if(ingText.isNotEmpty || selectedIngredientList.isNotEmpty){
 
         ingParam = getIngredientIds(ingText);
         linkParams += '&ingredients=';
@@ -691,7 +703,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       nameParam.isEmpty ? linkParams += '?search_type=Ingredient' : linkParams += '&search_type=Ingredient';
 
-      if(ingText.isNotEmpty){
+      if(ingText.isNotEmpty || selectedIngredientList.isNotEmpty){
 
         ingParam = getIngredientIds(ingText);
         linkParams += '&ingredients=';
@@ -751,6 +763,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
     recipesPageTitle = "Recipes found: " + totalRecipes.length.toString();
     //print("filteredSortedTotal is ------------------ " + filteredSortedTotal.toString());
+    print("selectedIngredientList is " + selectedIngredientList.toString());
 
     setState(() {
       isLoading = false;
@@ -787,7 +800,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       findPreferences();
     }
 
-    if(ingredientsList.isEmpty){
+    if(ingList.isEmpty){
       setState(() {
         isIngredientLoading = true;
       });
@@ -1082,11 +1095,11 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                           isIngredientLoading ? Center(
                             child: CircularProgressIndicator(),
                           ) : Container(
-                            height: 280,
+                            height: 350,
                             child: InitiateIngList(),
                           ),
                           SizedBox(height: 25.0,),
-                          new Card(
+                          /*new Card(
                             child: new Container(
                               padding: EdgeInsets.all(5),
                               decoration: BoxDecoration(
@@ -1107,7 +1120,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 },
                               ),
                             ),
-                          ),
+                          ),*/
                           isAllErr ? Center(
                               child: Text(
                                 errMsg,
@@ -1141,7 +1154,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 });
                               }
 
-                              if( isUserIngListChecked == false && ingredientsAllController.text.trim().isEmpty ) {
+                              if( selectedIngredientList.isEmpty && ingredientsAllController.text.trim().isEmpty ) {
 
                                 errMsg += "Error: An ingredient must be entered.\n\n";
                                 isAllErr = true;
@@ -1343,7 +1356,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                               child: InitiateIngList(),
                             ),
                             SizedBox(height: 25.0,),
-                            new Card(
+                            /*new Card(
                               child: new Container(
                                 padding: EdgeInsets.all(5),
                                 decoration: BoxDecoration(
@@ -1365,7 +1378,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   },
                                 ),
                               ),
-                            ),
+                            ),*/
                             SizedBox(height: 5.0),
                             isIngredientErr ? Center(
                                 child: Text(
@@ -1393,7 +1406,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                 errMsg = "";
                                 isIngredientErr = false;
 
-                                if( isUserIngListChecked == false && chosenIngredients.isEmpty ) {
+                                if( selectedIngredientList.isEmpty && chosenIngredients.isEmpty ) {
 
                                   errMsg += "Please enter an ingredient";
                                   isIngredientErr = true;

@@ -773,7 +773,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   @override
   void initState() {
 
-    clearRecipeList();
+    //clearRecipeList();
 
     /*setState(() {
       isCategoryLoading = true; //Data is loading
@@ -1402,7 +1402,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   isLoading = true; //Data is loading
                                 });
 
-                                clearResults();
                                 errMsg = "";
                                 isIngredientErr = false;
 
@@ -1415,6 +1414,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   });
                                 } else {
 
+                                  clearResults();
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
                                   print("chosenIngredients is " + chosenIngredients.toString());

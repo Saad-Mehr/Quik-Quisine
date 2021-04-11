@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'other_user_profile.dart';
+
 List<dynamic> recipeRatings = new List();
 int recentRating;
 String recentReview;
@@ -160,6 +162,8 @@ Future _ackAlert2(BuildContext context,int id, double AverageRating, String revi
 class recipedetails extends StatelessWidget {
   Widget thumbnail;
   String title;
+  String chef;
+  int user_id;
   String subtitle;
   String instructions;
   String serving;
@@ -167,7 +171,7 @@ class recipedetails extends StatelessWidget {
   String review;
   double AverageRating;
   int id;
-  recipedetails(this.thumbnail, this.title, this.subtitle,this.instructions,this.serving,this.ingredients,this.id,this.AverageRating,this.review);
+  recipedetails(this.thumbnail, this.title, this.subtitle, this.chef, this.user_id, this.instructions,this.serving,this.ingredients,this.id,this.AverageRating,this.review);
   @override
   Widget build(BuildContext context,) {
     getReviews(id);
@@ -205,6 +209,12 @@ class recipedetails extends StatelessWidget {
                   ),
                 ),
                 Text(subtitle),
+                GestureDetector(
+                    child: Text("${chef}", style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue)),
+                    onTap: () {
+                      Navigator.push(context,MaterialPageRoute(builder: (context) => other_profile()));
+                    }
+                ),
                 Text(serving),
                 Text(ingredients),
                 Text("Instructions:\n" + instructions),

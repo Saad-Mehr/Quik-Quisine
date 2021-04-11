@@ -33,6 +33,7 @@ List<dynamic> recipeIDs = [];
 List<dynamic> recipeNames = [];
 List<dynamic> recipeDesc = [];
 List<dynamic> recipeServing = [];
+List<dynamic> recipeChef = [];
 List<dynamic> recipeIngredients = [];
 List<dynamic> recipePicURLs = [];
 List<dynamic> recipePrep = [];
@@ -470,6 +471,7 @@ void clearRecipeList(){
   recipeNames.clear();
   recipeDesc.clear();
   recipeServing.clear();
+  recipeChef.clear();
   recipeIngredients.clear();
   recipePicURLs.clear();
   recipePrep.clear();
@@ -733,6 +735,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     searchList.forEach((searchList) => recipeNames.add(searchList['name']));
     searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
     searchList.forEach((searchList) => recipeServing.add(searchList['serving']));
+    searchList.forEach((searchList) => recipeChef.add(searchList['username']));
     searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
     searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));

@@ -210,7 +210,7 @@ class MenuOptions {
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
-    Recipes,
+    //Recipes,
     Search,
     AdvancedSearch,
     MealPlanner,
@@ -323,7 +323,7 @@ class UserIngredientList extends StatelessWidget{
             Container(
               margin: EdgeInsets.all(10.0),
               padding: EdgeInsets.all(10),
-              child: Text("Add ingredients that you have to help us find recipes for you and display any missing ingredients",
+              child: Text("Add ingredients to help us find recipes for you",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

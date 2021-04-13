@@ -4,13 +4,17 @@ import 'package:quikquisine490/calendar.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'editProfile.dart';
+import 'recipes.dart';
 import 'package:quikquisine490/user.dart';
 import 'HomePage.dart' as homepage;
-
+//thedatadb@gmail.com mealdbtester
 Map<String, String> get headers => {
   "X-User-Email": UserList[0],
   "X-User-Token": UserList[2],
 };
+
+List<dynamic> userRecipes = [];
+List<dynamic> subRecipes = [];
 
 Future<List> getData() async{
   String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString();
@@ -21,12 +25,28 @@ Future<List> getData() async{
   return temp;
 }
 
+Future<List> getSubsRecipes() async{
+  var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/latest_subscribed_recipes?user_id='+UserList[3].toString();
+  http.Response response = await http.get(url,headers: headers);
+  var parsedJson = jsonDecode(response.body);
+  var data = parsedJson['data'];
+  subRecipes = data;
+}
+
+Future<List> getUserRecipes() async{
+  var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+UserList[3].toString();
+  http.Response response = await http.get(url,headers: headers);
+  var parsedJson = jsonDecode(response.body);
+  var data = parsedJson['data'];
+  userRecipes = data;
+}
 
 class profile extends StatefulWidget {
   @override
   getUserInfoState createState() =>
       new getUserInfoState();
 }
+
 
 class getUserInfoState extends State<profile> {
   Future<List> user;
@@ -39,6 +59,7 @@ class getUserInfoState extends State<profile> {
   @override
   Widget build(BuildContext context) {
      initState();
+     getUserRecipes();
      return MaterialApp(
        title: 'Profile',
        theme: ThemeData(
@@ -57,7 +78,7 @@ class getUserInfoState extends State<profile> {
          ),
          body: Center(
            child: FutureBuilder<List>(
-             future: user,
+             future:user,
              builder: (context, snapshot) {
                if (snapshot.hasData) {
                  return ListView(
@@ -155,7 +176,6 @@ class getUserInfoState extends State<profile> {
                                                Tab(
                                                  text: "Subscriptions",
                                                  icon: Icon(Icons.bookmarks),
-
                                                ),
                                                Tab(
                                                  text: "My Recipes",
@@ -163,9 +183,20 @@ class getUserInfoState extends State<profile> {
                                                ),
                                              ]
                                          ),
+                                       ),
+                                       Container(
+                                         width: 400,
+                                         height: 670,
+                                         child:TabBarView(
+                                             children: [
+                                               displaySubRecipe(),
+                                               displayUserRecipe()
+                                             ]
+                                         ),
                                        )
                                      ],
                                    )
+
                                ),
                              ]
                          )
@@ -185,6 +216,80 @@ class getUserInfoState extends State<profile> {
      );
   }
 }
+class displaySubRecipe extends StatelessWidget{
+  Widget build(BuildContext context) {
+  getSubsRecipes();
+    return ListView.builder(
+      itemCount: subRecipes.length,
+      itemBuilder: (BuildContext context, index) {
+        return new Card(
+          child: new Container(
+              padding: EdgeInsets.only(
+                top: 10,
+                bottom: 10, // Space between underline and text
+                right: 10,
+                left: 10,
+              ),
+            child: CustomListItemTwo(
+              thumbnail: Container(
+                child: Image.network(
+                  subRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+              ),
+              title: subRecipes[index]['name'],
+              subtitle: subRecipes[index]['description'],
+              serving: "Servings: ${subRecipes[index]['serving']}",
+              chef: "@${subRecipes[index]['username']} \n",
+              user_id: subRecipes[index]['user_id'],
+              ingredients: subRecipes[index]['list_of_ingredients'].toString(),
+              instructions: "${subRecipes[index]['preparation']}",
+              id: subRecipes[index]['id'],
+              AverageRating: double.parse(subRecipes[index]['AverageRating']),
+              review: subRecipes[index]['review'],
+            ),
+
+          ),
+        );
+      },
+    );
+  }
+}
+class displayUserRecipe extends StatelessWidget{
+  Widget build(BuildContext context) {
+
+    return ListView.builder(
+      itemCount: userRecipes.length,
+      itemBuilder: (BuildContext context, index) {
+        return new Card(
+          child: new Container(
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: 10, // Space between underline and text
+              right: 10,
+              left: 10,
+            ),
+            child: CustomListItemTwo(
+              thumbnail: Container(
+                child: Image.network(
+                  userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+              ),
+              title: userRecipes[index]['name'],
+              subtitle: userRecipes[index]['description'],
+              serving: "Servings: ${userRecipes[index]['serving']}",
+              chef: "@${UserList[1]} \n",
+              user_id: UserList[3],
+              ingredients: userRecipes[index]['list_of_ingredients'].toString(),
+              instructions: "${userRecipes[index]['preparation']}",
+              id: userRecipes[index]['id'],
+              AverageRating: double.parse(userRecipes[index]['AverageRating']),
+              review: userRecipes[index]['review'],
+            ),
+
+          ),
+        );
+      },
+    );
+  }
+}
 
 // the options for the settings dropdown
 class MenuOptions {
@@ -195,6 +300,8 @@ class MenuOptions {
   ];
 
 }
+
+
 // the route change to the option selected
 void optionAction(String option, BuildContext context) {
   if (option == MenuOptions.EditProfile) {

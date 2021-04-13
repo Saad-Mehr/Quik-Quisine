@@ -261,6 +261,7 @@ class UserIngredientList extends StatelessWidget{
       );
     }
     else if (option == MenuOptions.Profile) {
+      await getSubsRecipes();
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => profile()),

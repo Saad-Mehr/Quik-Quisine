@@ -175,6 +175,7 @@ class recipedetails extends StatelessWidget {
   @override
   Widget build(BuildContext context,) {
     getReviews(id);
+    getUserRecipes();
     if(recentReview != null)
       review = recentReview;
     if(recentRating != null)

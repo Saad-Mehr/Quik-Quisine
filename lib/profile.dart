@@ -36,25 +36,38 @@ class getUserInfoState extends State<profile> {
   Future<List> getSubsRecipes() async{
     var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/latest_subscribed_recipes?user_id='+UserList[3].toString();
     http.Response response = await http.get(url,headers: headers);
-    var parsedJson = jsonDecode(response.body);
-    var data = parsedJson['data'];
-    subRecipes = data;
 
-    setState(() {
-      isSubRecipeLoading = false;
-    });
+    if (response.statusCode == 200) {
+      var parsedJson = jsonDecode(response.body);
+      var data = parsedJson['data'];
+      subRecipes = data;
+      setState(() {
+        isSubRecipeLoading = false;
+      });
+    }else{
+      setState(() {
+        isSubRecipeLoading = false;
+      });
+    }
+
   }
 
   Future<List> retrieveUserRecipes() async{
     var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+UserList[3].toString();
     http.Response response = await http.get(url,headers: headers);
-    var parsedJson = jsonDecode(response.body);
-    var data = parsedJson['data'];
-    userRecipes = data;
 
-    setState(() {
-      isUserRecipeLoading = false;
-    });
+    if (response.statusCode == 200) {
+      var parsedJson = jsonDecode(response.body);
+      var data = parsedJson['data'];
+      userRecipes = data;
+      setState(() {
+        isUserRecipeLoading = false;
+      });
+    }else{
+      setState(() {
+        isUserRecipeLoading = false;
+      });
+    }
   }
 
   Future<void> clearSubRecipe() async {
@@ -96,6 +109,7 @@ class getUserInfoState extends State<profile> {
   }
   @override
   Widget build(BuildContext context) {
+     bool showNoResult = false;
      return MaterialApp(
        title: 'Profile',
        theme: ThemeData(
@@ -227,42 +241,52 @@ class getUserInfoState extends State<profile> {
                                              children: [
                                                isSubRecipeLoading ? Center(
                                                  child: CircularProgressIndicator(),
-                                               ) :
-                                               ListView.builder(
-                                                 itemCount: subRecipes.length,
-                                                 itemBuilder: (BuildContext context, index) {
-                                                   return new Card(
-                                                     child: new Container(
-                                                       padding: EdgeInsets.only(
-                                                         top: 10,
-                                                         bottom: 10, // Space between underline and text
-                                                         right: 10,
-                                                         left: 10,
-                                                       ),
-                                                       child: CustomListItemTwo(
-                                                         thumbnail: Container(
-                                                           child: Image.network(
-                                                             subRecipes[index]['get_image_url'], fit: BoxFit.fill,),
-                                                         ),
-                                                         title: subRecipes[index]['name'],
-                                                         subtitle: subRecipes[index]['description'],
-                                                         serving: "Servings: ${subRecipes[index]['serving']}",
-                                                         chef: "@${subRecipes[index]['username']} \n",
-                                                         user_id: subRecipes[index]['user_id'],
-                                                         ingredients: subRecipes[index]['list_of_ingredients'].toString(),
-                                                         instructions: "${subRecipes[index]['preparation']}",
-                                                         id: subRecipes[index]['id'],
-                                                         AverageRating: double.parse(subRecipes[index]['AverageRating']),
-                                                         review: subRecipes[index]['review'],
-                                                       ),
+                                               ) : (
+                                                   subRecipes.length > 0 ?
+                                                   ListView.builder(
+                                                     itemCount: subRecipes.length,
+                                                     itemBuilder: (BuildContext context, index) {
+                                                       return new Card(
+                                                         child: new Container(
+                                                           padding: EdgeInsets.only(
+                                                             top: 10,
+                                                             bottom: 10, // Space between underline and text
+                                                             right: 10,
+                                                             left: 10,
+                                                           ),
+                                                           child: CustomListItemTwo(
+                                                             thumbnail: Container(
+                                                               child: Image.network(
+                                                                 subRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+                                                             ),
+                                                             title: subRecipes[index]['name'],
+                                                             subtitle: subRecipes[index]['description'],
+                                                             serving: "Servings: ${subRecipes[index]['serving']}",
+                                                             chef: "@${subRecipes[index]['username']} \n",
+                                                             user_id: subRecipes[index]['user_id'],
+                                                             ingredients: subRecipes[index]['list_of_ingredients'].toString(),
+                                                             instructions: "${subRecipes[index]['preparation']}",
+                                                             id: subRecipes[index]['id'],
+                                                             AverageRating: double.parse(subRecipes[index]['AverageRating']),
+                                                             review: subRecipes[index]['review'],
+                                                           ),
 
-                                                     ),
-                                                   );
-                                                 },
+                                                         ),
+                                                       );
+                                                     },
+                                                   ) : Center(
+                                                         child: Text(
+                                                           "No subscribed recipes",
+                                                           style: TextStyle(
+                                                             fontSize: 24,
+                                                             color: Colors.black54,
+                                                           ),
+                                                         ),
+                                                         )
                                                ),
                                                isUserRecipeLoading ? Center(
                                                  child: CircularProgressIndicator(),
-                                               ) :
+                                               ) : userRecipes.length > 0 ?
                                                ListView.builder(
                                                  itemCount: userRecipes.length,
                                                  itemBuilder: (BuildContext context, index) {
@@ -294,7 +318,15 @@ class getUserInfoState extends State<profile> {
                                                      ),
                                                    );
                                                  },
-                                               )
+                                               ) : Center(
+                                                 child: Text(
+                                                   "You have no recipes",
+                                                   style: TextStyle(
+                                                     fontSize: 24,
+                                                     color: Colors.black54,
+                                                   ),
+                                                 ),
+                                               ),
                                              ]
                                          ),
                                        )

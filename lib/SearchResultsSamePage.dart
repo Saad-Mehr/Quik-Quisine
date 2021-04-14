@@ -495,6 +495,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     searchList.forEach((searchList) => recipeNames.add(searchList['name']));
     searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
     searchList.forEach((searchList) => recipeServing.add(searchList['serving']));
+    searchList.forEach((searchList) => recipeChef.add(searchList['username']));
     searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
     searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));

@@ -5,11 +5,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'other_user_profile.dart';
+import 'package:quikquisine490/profile.dart';
+
 List<dynamic> recipeRatings = new List();
 int recentRating;
 String recentReview;
+
 Future getReviews(int id) async{
   recipeRatings.clear();
+  Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes/'+id.toString()+'/ratings', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
@@ -28,6 +33,7 @@ Future setReviews(int id, int rating, String review) async{
   //var jsonbody = {};
  // jsonbody["user"] = body;
   String msg = json.encode(body);
+  Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
   http.Response response = await http.post(url,headers: headers,body: msg);
   print("Review added code:: " + response.statusCode.toString());
 }
@@ -160,6 +166,8 @@ Future _ackAlert2(BuildContext context,int id, double AverageRating, String revi
 class recipedetails extends StatelessWidget {
   Widget thumbnail;
   String title;
+  String chef;
+  int user_id;
   String subtitle;
   String instructions;
   String serving;
@@ -167,7 +175,8 @@ class recipedetails extends StatelessWidget {
   String review;
   double AverageRating;
   int id;
-  recipedetails(this.thumbnail, this.title, this.subtitle,this.instructions,this.serving,this.ingredients,this.id,this.AverageRating,this.review);
+  recipedetails(this.thumbnail, this.title, this.subtitle, this.chef, this.user_id, this.instructions,this.serving,this.ingredients,this.id,this.AverageRating,this.review);
+
   @override
   Widget build(BuildContext context,) {
     getReviews(id);
@@ -205,6 +214,16 @@ class recipedetails extends StatelessWidget {
                   ),
                 ),
                 Text(subtitle),
+                GestureDetector(
+                    child: Text("${chef}", style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue)),
+                    onTap: () {
+                      if(user_id.toInt() == UserList[3]){
+                        Navigator.push(context,MaterialPageRoute(builder: (context) => profile()));
+                      }else{
+                        Navigator.push(context,MaterialPageRoute(builder: (context) => other_profile()));
+                      }
+                    }
+                ),
                 Text(serving),
                 Text(ingredients),
                 Text("Instructions:\n" + instructions),

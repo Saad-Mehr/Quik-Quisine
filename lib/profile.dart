@@ -4,23 +4,10 @@ import 'package:quikquisine490/calendar.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'editProfile.dart';
+import 'recipes.dart';
 import 'package:quikquisine490/user.dart';
 import 'HomePage.dart' as homepage;
-
-Map<String, String> get headers => {
-  "X-User-Email": UserList[0],
-  "X-User-Token": UserList[2],
-};
-
-Future<List> getData() async{
-  String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString();
-  http.Response response = await http.get(url,headers: headers);
-  var parsedJson = jsonDecode(response.body);
-  var data = parsedJson['data'];
-  List temp = [data['email'],data['username'],data['first_name'],data['last_name']];
-  return temp;
-}
-
+//thedatadb@gmail.com mealdbtester
 
 class profile extends StatefulWidget {
   @override
@@ -28,17 +15,87 @@ class profile extends StatefulWidget {
       new getUserInfoState();
 }
 
+
 class getUserInfoState extends State<profile> {
   Future<List> user;
+  List<dynamic> userRecipes = [];
+  List<dynamic> subRecipes = [];
+  bool isSubRecipeLoading = false;
+  bool isUserRecipeLoading = false;
 
+  Future<List> getData() async{
+    String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString();
+    Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
+    http.Response response = await http.get(url,headers: headers);
+    var parsedJson = jsonDecode(response.body);
+    var data = parsedJson['data'];
+    List temp = [data['email'],data['username'],data['first_name'],data['last_name'],  data['followers_count'], data['followings_count'], data['is_subscribed']];
+    return temp;
+  }
+
+  Future<List> getSubsRecipes() async{
+    var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/latest_subscribed_recipes?user_id='+UserList[3].toString();
+    http.Response response = await http.get(url,headers: headers);
+    var parsedJson = jsonDecode(response.body);
+    var data = parsedJson['data'];
+    subRecipes = data;
+
+    setState(() {
+      isSubRecipeLoading = false;
+    });
+  }
+
+  Future<List> retrieveUserRecipes() async{
+    var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+UserList[3].toString();
+    http.Response response = await http.get(url,headers: headers);
+    var parsedJson = jsonDecode(response.body);
+    var data = parsedJson['data'];
+    userRecipes = data;
+
+    setState(() {
+      isUserRecipeLoading = false;
+    });
+  }
+
+  Future<void> clearSubRecipe() async {
+
+    if(subRecipes != null){
+      subRecipes.clear();
+    } else {
+      subRecipes = [];
+    }
+  }
+
+  Future<void> clearUserRecipe() async {
+
+    if(userRecipes != null){
+      userRecipes.clear();
+    } else {
+      userRecipes = [];
+    }
+  }
 
   @override
   void initState() {
    user = getData();
+   clearSubRecipe();
+   clearUserRecipe();
+
+   super.initState();
+
+   setState(() {
+     isSubRecipeLoading = true;
+   });
+
+   getSubsRecipes();
+
+   setState(() {
+     isUserRecipeLoading = false;
+   });
+   retrieveUserRecipes();
   }
   @override
   Widget build(BuildContext context) {
-     initState();
      return MaterialApp(
        title: 'Profile',
        theme: ThemeData(
@@ -57,7 +114,7 @@ class getUserInfoState extends State<profile> {
          ),
          body: Center(
            child: FutureBuilder<List>(
-             future: user,
+             future:user,
              builder: (context, snapshot) {
                if (snapshot.hasData) {
                  return ListView(
@@ -122,7 +179,7 @@ class getUserInfoState extends State<profile> {
                                ),
                              ),
                              Container(
-                               child: Text("Followers 2000 |",
+                               child: Text("Followers ${snapshot.data[4]}  | ",
                                    style: const TextStyle(
                                      fontWeight: FontWeight.normal,
                                      fontSize: 16.0,
@@ -130,7 +187,7 @@ class getUserInfoState extends State<profile> {
                                ),
                              ),
                              Container(
-                               child: Text(" Following 0",
+                               child: Text(" Following ${snapshot.data[5]} ",
                                    style: const TextStyle(
                                      fontWeight: FontWeight.normal,
                                      fontSize: 16.0,
@@ -155,7 +212,6 @@ class getUserInfoState extends State<profile> {
                                                Tab(
                                                  text: "Subscriptions",
                                                  icon: Icon(Icons.bookmarks),
-
                                                ),
                                                Tab(
                                                  text: "My Recipes",
@@ -163,9 +219,88 @@ class getUserInfoState extends State<profile> {
                                                ),
                                              ]
                                          ),
+                                       ),
+                                       Container(
+                                         width: 400,
+                                         height: 670,
+                                         child:TabBarView(
+                                             children: [
+                                               isSubRecipeLoading ? Center(
+                                                 child: CircularProgressIndicator(),
+                                               ) :
+                                               ListView.builder(
+                                                 itemCount: subRecipes.length,
+                                                 itemBuilder: (BuildContext context, index) {
+                                                   return new Card(
+                                                     child: new Container(
+                                                       padding: EdgeInsets.only(
+                                                         top: 10,
+                                                         bottom: 10, // Space between underline and text
+                                                         right: 10,
+                                                         left: 10,
+                                                       ),
+                                                       child: CustomListItemTwo(
+                                                         thumbnail: Container(
+                                                           child: Image.network(
+                                                             subRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+                                                         ),
+                                                         title: subRecipes[index]['name'],
+                                                         subtitle: subRecipes[index]['description'],
+                                                         serving: "Servings: ${subRecipes[index]['serving']}",
+                                                         chef: "@${subRecipes[index]['username']} \n",
+                                                         user_id: subRecipes[index]['user_id'],
+                                                         ingredients: subRecipes[index]['list_of_ingredients'].toString(),
+                                                         instructions: "${subRecipes[index]['preparation']}",
+                                                         id: subRecipes[index]['id'],
+                                                         AverageRating: double.parse(subRecipes[index]['AverageRating']),
+                                                         review: subRecipes[index]['review'],
+                                                       ),
+
+                                                     ),
+                                                   );
+                                                 },
+                                               ),
+                                               isUserRecipeLoading ? Center(
+                                                 child: CircularProgressIndicator(),
+                                               ) :
+                                               ListView.builder(
+                                                 itemCount: userRecipes.length,
+                                                 itemBuilder: (BuildContext context, index) {
+                                                   return new Card(
+                                                     child: new Container(
+                                                       padding: EdgeInsets.only(
+                                                         top: 10,
+                                                         bottom: 10, // Space between underline and text
+                                                         right: 10,
+                                                         left: 10,
+                                                       ),
+                                                       child: CustomListItemTwo(
+                                                         thumbnail: Container(
+                                                           child: Image.network(
+                                                             userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+                                                         ),
+                                                         title: userRecipes[index]['name'],
+                                                         subtitle: userRecipes[index]['description'],
+                                                         serving: "Servings: ${userRecipes[index]['serving']}",
+                                                         chef: "@${UserList[1]} \n",
+                                                         user_id: UserList[3],
+                                                         ingredients: userRecipes[index]['list_of_ingredients'].toString(),
+                                                         instructions: "${userRecipes[index]['preparation']}",
+                                                         id: userRecipes[index]['id'],
+                                                         AverageRating: double.parse(userRecipes[index]['AverageRating']),
+                                                         review: userRecipes[index]['review'],
+                                                       ),
+
+                                                     ),
+                                                   );
+                                                 },
+                                               )
+                                             ]
+                                         ),
                                        )
                                      ],
                                    )
+
                                ),
                              ]
                          )
@@ -186,6 +321,81 @@ class getUserInfoState extends State<profile> {
   }
 }
 
+// class displaySubRecipe extends StatelessWidget{
+//   Widget build(BuildContext context) {
+//   getSubsRecipes();
+//     return ListView.builder(
+//       itemCount: subRecipes.length,
+//       itemBuilder: (BuildContext context, index) {
+//         return new Card(
+//           child: new Container(
+//               padding: EdgeInsets.only(
+//                 top: 10,
+//                 bottom: 10, // Space between underline and text
+//                 right: 10,
+//                 left: 10,
+//               ),
+//             child: CustomListItemTwo(
+//               thumbnail: Container(
+//                 child: Image.network(
+//                   subRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+//               ),
+//               title: subRecipes[index]['name'],
+//               subtitle: subRecipes[index]['description'],
+//               serving: "Servings: ${subRecipes[index]['serving']}",
+//               chef: "@${subRecipes[index]['username']} \n",
+//               user_id: subRecipes[index]['user_id'],
+//               ingredients: subRecipes[index]['list_of_ingredients'].toString(),
+//               instructions: "${subRecipes[index]['preparation']}",
+//               id: subRecipes[index]['id'],
+//               AverageRating: double.parse(subRecipes[index]['AverageRating']),
+//               review: subRecipes[index]['review'],
+//             ),
+//
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+// class displayUserRecipe extends StatelessWidget{
+//   Widget build(BuildContext context) {
+//
+//     return ListView.builder(
+//       itemCount: userRecipes.length,
+//       itemBuilder: (BuildContext context, index) {
+//         return new Card(
+//           child: new Container(
+//             padding: EdgeInsets.only(
+//               top: 10,
+//               bottom: 10, // Space between underline and text
+//               right: 10,
+//               left: 10,
+//             ),
+//             child: CustomListItemTwo(
+//               thumbnail: Container(
+//                 child: Image.network(
+//                   userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+//               ),
+//               title: userRecipes[index]['name'],
+//               subtitle: userRecipes[index]['description'],
+//               serving: "Servings: ${userRecipes[index]['serving']}",
+//               chef: "@${UserList[1]} \n",
+//               user_id: UserList[3],
+//               ingredients: userRecipes[index]['list_of_ingredients'].toString(),
+//               instructions: "${userRecipes[index]['preparation']}",
+//               id: userRecipes[index]['id'],
+//               AverageRating: double.parse(userRecipes[index]['AverageRating']),
+//               review: userRecipes[index]['review'],
+//             ),
+//
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+
 // the options for the settings dropdown
 class MenuOptions {
   static const String EditProfile = 'Edit profile';
@@ -195,6 +405,8 @@ class MenuOptions {
   ];
 
 }
+
+
 // the route change to the option selected
 void optionAction(String option, BuildContext context) {
   if (option == MenuOptions.EditProfile) {

@@ -37,13 +37,24 @@ class getUserInfoState extends State<other_profile> {
     Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
     var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+otherUserList[0].toString();
     http.Response response = await http.get(url,headers: headers);
-    var parsedJson = jsonDecode(response.body);
-    var data = parsedJson['data'];
-    userRecipes = data;
 
     setState(() {
       isUserRecipeLoading = false;
     });
+
+    if (response.statusCode == 200) {
+      var parsedJson = jsonDecode(response.body);
+      var data = parsedJson['data'];
+      userRecipes = data;
+
+      setState(() {
+        isUserRecipeLoading = false;
+      });
+    }else{
+      setState(() {
+        isUserRecipeLoading = false;
+      });
+    }
   }
 
   Future<void> clearUserRecipe() async {
@@ -240,7 +251,7 @@ class getUserInfoState extends State<other_profile> {
                                             children: [
                                               isUserRecipeLoading ? Center(
                                                 child: CircularProgressIndicator(),
-                                              ) :
+                                              ) : userRecipes.length > 0 ?
                                               ListView.builder(
                                                 itemCount: userRecipes.length,
                                                 itemBuilder: (BuildContext context, index) {
@@ -272,7 +283,15 @@ class getUserInfoState extends State<other_profile> {
                                                     ),
                                                   );
                                                 },
-                                              )
+                                              ) : Center(
+                                                child: Text(
+                                                  "No Recipes",
+                                                  style: TextStyle(
+                                                    fontSize: 24,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ),
                                             ]
                                         ),
                                       )

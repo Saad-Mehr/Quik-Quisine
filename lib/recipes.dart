@@ -17,14 +17,10 @@ List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = [];
 String recipesPageTitle;
 
-Map<String, String> get headers => {
-  "X-User-Email": UserList[0],
-  "X-User-Token": UserList[2],
-  'Content-Type': 'application/json; charset=UTF-8',
-};
-
 
 Future<List> addToList(int id) async{
+
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   var url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/'+UserList[3].toString()+'/meal_planner_baskets';
   var body = {};
   body["user_id"] =UserList[3].toString();
@@ -37,7 +33,7 @@ Future<List> addToList(int id) async{
 }
 
 Future retrieveList() async{
-
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/users/users/'+UserList[3].toString()+'/meal_planner_baskets', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
@@ -50,6 +46,7 @@ Future retrieveList() async{
 }
 
 Future<List> deleteList(int id) async{
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   http.Response response = await http.delete('https://quik-quisine.herokuapp.com/api/v1/users/meal_planner_baskets/'+id.toString(),headers: headers);
   print(response.statusCode);
 }
@@ -73,6 +70,7 @@ Future sortAllIngredients() async {
 }
 
 Future getSearchIng() async {
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   sortedTotalRecipeIng.clear();
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
   var parsedJson = jsonDecode(response.body);
@@ -93,6 +91,7 @@ Future getSearchIng() async {
 }
 
 Future getRecipes() async{
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   sortedTotalRecipeIng.clear();
   filteredSortedTotal.clear();
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);

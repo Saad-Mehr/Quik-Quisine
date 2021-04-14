@@ -8,30 +8,7 @@ import 'package:quikquisine490/user.dart';
 import 'HomePage.dart' as homepage;
 import 'user.dart';
 
-
-
-bool is_subscribed;
-List<dynamic> userRecipes = [];
-
-Future<List> getData() async{
-  String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString() + '/other_profile?other_user_id=' + otherUserList[0].toString();
-  Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
-  http.Response response = await http.get(url,headers: headers);
-  var parsedJson = jsonDecode(response.body);
- 
-  var data = parsedJson['data'];
-  List temp = [data['email'],data['username'],data['first_name'],data['last_name'], data['followers_count'], data['followings_count'], data['is_subscribed']];
-  is_subscribed = temp[6];
-  return temp;
-}
-
-Future<List> getUserRecipes() async{
-  var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+otherUserList[0].toString();
-  http.Response response = await http.get(url,headers: headers);
-  var parsedJson = jsonDecode(response.body);
-  var data = parsedJson['data'];
-  userRecipes = data;
-}
+bool is_subscribed = false;
 
 class other_profile extends StatefulWidget {
   @override
@@ -41,15 +18,114 @@ class other_profile extends StatefulWidget {
 
 class getUserInfoState extends State<other_profile> {
   Future<List> user;
+  List<dynamic> userRecipes = [];
+  bool isUserRecipeLoading = false;
 
+  Future<List> getData() async{
+    String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' + UserList[3].toString() + '/other_profile?other_user_id=' + otherUserList[0].toString();
+    Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
+    http.Response response = await http.get(url,headers: headers);
+    var parsedJson = jsonDecode(response.body);
+
+    var data = parsedJson['data'];
+    List temp = [data['email'],data['username'],data['first_name'],data['last_name'], data['followers_count'], data['followings_count'], data['is_subscribed']];
+    is_subscribed = temp[6];
+    return temp;
+  }
+
+  Future<List> getUserRecipes() async{
+    Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
+    var url = 'https://quik-quisine.herokuapp.com/api/v1/recipe/retrieve_user_recipes?user_id='+otherUserList[0].toString();
+    http.Response response = await http.get(url,headers: headers);
+    var parsedJson = jsonDecode(response.body);
+    var data = parsedJson['data'];
+    userRecipes = data;
+
+    setState(() {
+      isUserRecipeLoading = false;
+    });
+  }
+
+  Future<void> clearUserRecipe() async {
+
+    if(userRecipes != null){
+      userRecipes.clear();
+    } else {
+      userRecipes = [];
+    }
+  }
+
+  Future<int> setSubscription() async{
+    if(is_subscribed) {
+      String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' +
+          UserList[3].toString() + '/unsubscribe?other_user_id=' +
+          otherUserList[0].toString();
+      Map<String, String> headers = {
+        'X-User-Email': UserList[0],
+        'X-User-Token': UserList[2]
+      };
+      http.Response response = await http.delete(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        is_subscribed = false;
+        return response.statusCode;
+      } else if( (response.statusCode == 401) || (response.statusCode == 500) ){
+        print("Error: Unauthorized");
+        return response.statusCode;
+      }
+      else{
+        return response.statusCode;
+      }
+    }
+    else{
+      String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' +
+          UserList[3].toString() + '/subscribe?other_user_id=' +
+          otherUserList[0].toString();
+      Map<String, String> headers = {
+        'X-User-Email': UserList[0],
+        'X-User-Token': UserList[2]
+      };
+      http.Response response = await http.post(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        is_subscribed = true;
+        return response.statusCode;
+      } else if( (response.statusCode == 401) || (response.statusCode == 500) ){
+        print("Error: Unauthorized");
+        return response.statusCode;
+      }
+      else
+        return response.statusCode;
+    }
+
+  }
 
   @override
   void initState() {
     user = getData();
+    clearUserRecipe();
+
+    super.initState();
+
+    setState(() {
+      isUserRecipeLoading = true;
+    });
+
+    getUserRecipes();
   }
+
+  String textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
+
+  void updateSubscription() async {
+    await setSubscription();
+    setState((){
+      textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    initState();
+    user = getData();
     return MaterialApp(
       title: 'Profile',
       theme: ThemeData(
@@ -107,10 +183,20 @@ class getUserInfoState extends State<other_profile> {
                           children: <Widget>[
                             Container(
                               margin:  EdgeInsets.only(left: 20, top:10, right: 20, bottom:0),
-                              child: UpdateText(),
+                              child: RaisedButton(
+                                //     disabledColor: Colors.red,
+                                // disabledTextColor: Colors.black,
+                                padding: const EdgeInsets.all(10),
+                                textColor: Colors.black,
+                                color: is_subscribed ? Colors.grey : Colors.orange,
+                                onPressed: () {
+                                  updateSubscription();
+                                },
+                                child: Text(textHolder) ,
+                              ),
                             ),
                             Container(
-                              child: Text("Followers ${snapshot.data[4]} |",
+                              child: Text("Followers ${snapshot.data[4]} | ",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                     fontSize: 16.0,
@@ -118,13 +204,13 @@ class getUserInfoState extends State<other_profile> {
                               ),
                             ),
                             Container(
-                              child: Text(" Following ${snapshot.data[5]}",
+                              child: Text("Following ${snapshot.data[5]}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                     fontSize: 16.0,
                                   )
                               ),
-                            )
+                            ),
                           ],
                         ),
                         Row(
@@ -152,7 +238,41 @@ class getUserInfoState extends State<other_profile> {
                                         height: 670,
                                         child:TabBarView(
                                             children: [
-                                              displayUserRecipe()
+                                              isUserRecipeLoading ? Center(
+                                                child: CircularProgressIndicator(),
+                                              ) :
+                                              ListView.builder(
+                                                itemCount: userRecipes.length,
+                                                itemBuilder: (BuildContext context, index) {
+                                                  return new Card(
+                                                    child: new Container(
+                                                      padding: EdgeInsets.only(
+                                                        top: 10,
+                                                        bottom: 10, // Space between underline and text
+                                                        right: 10,
+                                                        left: 10,
+                                                      ),
+                                                      child: CustomListItemTwo(
+                                                        thumbnail: Container(
+                                                          child: Image.network(
+                                                            userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+                                                        ),
+                                                        title: userRecipes[index]['name'],
+                                                        subtitle: userRecipes[index]['description'],
+                                                        serving: "Servings: ${userRecipes[index]['serving']}",
+                                                        chef: "${otherUserList[1]} \n",
+                                                        user_id: otherUserList[0],
+                                                        ingredients: userRecipes[index]['list_of_ingredients'].toString(),
+                                                        instructions: "${userRecipes[index]['preparation']}",
+                                                        id: userRecipes[index]['id'],
+                                                        AverageRating: double.parse(userRecipes[index]['AverageRating']),
+                                                        review: userRecipes[index]['review'],
+                                                      ),
+
+                                                    ),
+                                                  );
+                                                },
+                                              )
                                             ]
                                         ),
                                       )
@@ -178,122 +298,78 @@ class getUserInfoState extends State<other_profile> {
   }
 }
 
-class displayUserRecipe extends StatelessWidget{
-  Widget build(BuildContext context) {
-  getUserRecipes();
-    return ListView.builder(
-      itemCount: userRecipes.length,
-      itemBuilder: (BuildContext context, index) {
-        return new Card(
-          child: new Container(
-            padding: EdgeInsets.only(
-              top: 10,
-              bottom: 10, // Space between underline and text
-              right: 10,
-              left: 10,
-            ),
-            child: CustomListItemTwo(
-              thumbnail: Container(
-                child: Image.network(
-                  userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
-              ),
-              title: userRecipes[index]['name'],
-              subtitle: userRecipes[index]['description'],
-              serving: "Servings: ${userRecipes[index]['serving']}",
-              chef: "${otherUserList[1]} \n",
-              user_id: otherUserList[0],
-              ingredients: userRecipes[index]['list_of_ingredients'].toString(),
-              instructions: "${userRecipes[index]['preparation']}",
-              id: userRecipes[index]['id'],
-              AverageRating: double.parse(userRecipes[index]['AverageRating']),
-              review: userRecipes[index]['review'],
-            ),
-
-          ),
-        );
-      },
-    );
-  }
-}
+// class displayUserRecipe extends StatelessWidget{
+//   Widget build(BuildContext context) {
+//   getUserRecipes();
+//     return ListView.builder(
+//       itemCount: userRecipes.length,
+//       itemBuilder: (BuildContext context, index) {
+//         return new Card(
+//           child: new Container(
+//             padding: EdgeInsets.only(
+//               top: 10,
+//               bottom: 10, // Space between underline and text
+//               right: 10,
+//               left: 10,
+//             ),
+//             child: CustomListItemTwo(
+//               thumbnail: Container(
+//                 child: Image.network(
+//                   userRecipes[index]['get_image_url'], fit: BoxFit.fill,),
+//               ),
+//               title: userRecipes[index]['name'],
+//               subtitle: userRecipes[index]['description'],
+//               serving: "Servings: ${userRecipes[index]['serving']}",
+//               chef: "${otherUserList[1]} \n",
+//               user_id: otherUserList[0],
+//               ingredients: userRecipes[index]['list_of_ingredients'].toString(),
+//               instructions: "${userRecipes[index]['preparation']}",
+//               id: userRecipes[index]['id'],
+//               AverageRating: double.parse(userRecipes[index]['AverageRating']),
+//               review: userRecipes[index]['review'],
+//             ),
+//
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
 
 //update subscription text button
 
-class UpdateText extends StatefulWidget {
+// class UpdateSubscribeBtn extends StatefulWidget {
+//
+//   UpdateSubscribeBtnState createState() => UpdateSubscribeBtnState();
+//
+// }
 
-  UpdateTextState createState() => UpdateTextState();
+// class UpdateSubscribeBtnState extends State {
+//   String textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
+//
+//   void updateSubscription() async {
+//     await setSubscription();
+//     setState((){
+//       textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
+//     });
+//   }
+//
+//   Widget build(BuildContext context) {
+//     return RaisedButton(
+//       //     disabledColor: Colors.red,
+//       // disabledTextColor: Colors.black,
+//       padding: const EdgeInsets.all(10),
+//       textColor: Colors.black,
+//       color: is_subscribed ? Colors.grey : Colors.orange,
+//       onPressed: () {
+//         updateSubscription();
+//       },
+//       child: Text(textHolder) ,
+//     );
+//     // return Text('$textHolder',
+//     //     style: TextStyle(fontSize: 21)
+//     // );
+//   }
+// }
 
-}
-
-class UpdateTextState extends State {
-  String textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
-
-  void updateSubscription() async {
-    await setSubscription();
-    setState((){
-      textHolder = is_subscribed ? "Unsubscribe" : "Subscribe";
-    });
-  }
-
-  Widget build(BuildContext context) {
-    return RaisedButton(
-      //     disabledColor: Colors.red,
-      // disabledTextColor: Colors.black,
-      padding: const EdgeInsets.all(10),
-      textColor: Colors.black,
-      color: is_subscribed ? Colors.grey : Colors.orange,
-      onPressed: () {
-        updateSubscription();
-      },
-      child: Text(textHolder) ,
-    );
-    // return Text('$textHolder',
-    //     style: TextStyle(fontSize: 21)
-    // );
-  }
-}
-
-Future<int> setSubscription() async{
-  if(is_subscribed) {
-    String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' +
-        UserList[3].toString() + '/unsubscribe?other_user_id=' +
-        otherUserList[0].toString();
-    Map<String, String> headers = {
-      'X-User-Email': UserList[0],
-      'X-User-Token': UserList[2]
-    };
-    http.Response response = await http.delete(url, headers: headers);
-
-    if (response.statusCode == 200) {
-      is_subscribed = false;
-      return response.statusCode;
-    } else if( (response.statusCode == 401) || (response.statusCode == 500) ){
-      print("Error: Unauthorized");
-      return response.statusCode;
-    }
-    else{
-      return response.statusCode;
-    }
-  }
-  else{
-    String url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/' +
-        UserList[3].toString() + '/subscribe?other_user_id=' +
-        otherUserList[0].toString();
-    Map<String, String> headers = {
-      'X-User-Email': UserList[0],
-      'X-User-Token': UserList[2]
-    };
-    http.Response response = await http.post(url, headers: headers);
-
-    if (response.statusCode == 200) {
-      is_subscribed = true;
-      return response.statusCode;
-    } else if( (response.statusCode == 401) || (response.statusCode == 500) ){
-      print("Error: Unauthorized");
-      return response.statusCode;
-    }
-    else
-      return response.statusCode;
-  }
-
-}
 

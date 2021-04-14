@@ -172,7 +172,7 @@ class MenuOptions {
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
-    Recipes,
+    //Recipes,
     Search,
     AdvancedSearch,
     MealPlanner,
@@ -548,9 +548,10 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               child: new Container(
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(
-                      color: Colors.amber,
-                      width: 1.3, // Underline thickness
+                    border: Border(
+                        bottom: BorderSide(
+                        color: Colors.amber,
+                        width: 1.3, // Underline thickness
                     ))
                 ),
                 child: Text(

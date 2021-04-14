@@ -44,7 +44,7 @@ class BodyLayout extends StatelessWidget {
 Widget _myListView(BuildContext context) {
   return ListView(
     children: <Widget>[
-      ListTile(
+      /*ListTile(
         title: Text('Recipes'),
         trailing: Icon(Icons.keyboard_arrow_right),
         onTap: () {
@@ -53,7 +53,7 @@ Widget _myListView(BuildContext context) {
             MaterialPageRoute(builder: (context) => RecipePage()),
           );
         },
-      ),
+      ),*/
       ListTile(
         title: Text('Basic Search'),
         trailing: Icon(Icons.keyboard_arrow_right),

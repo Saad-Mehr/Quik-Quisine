@@ -49,27 +49,27 @@ List<dynamic> missingIngredients = [];
 // used for storing user's list of ingredients
 List<dynamic> userIngredientNamesList = [];
 
-AutoCompleteTextField recTextField;
+//AutoCompleteTextField recTextField;
 //TextEditingController recController = new TextEditingController();
 GlobalKey<AutoCompleteTextFieldState<Ingredients>> ingredientAutoCompleteKey = new GlobalKey();
 
-class InitRecipeList extends StatefulWidget {
+/*class InitRecipeList extends StatefulWidget {
 
   RecipesState createState() => RecipesState();
-}
+}*/
 
 class InitiateIngList extends StatefulWidget {
   IngListState createState() => IngListState();
 }
 
-Future<void> clearRecipeListSamePage() async {
+/*Future<void> clearRecipeListSamePage() async {
 
-  if(recipeList != null){
-    recipeList.clear();
-  } else {
-    recipeList = [];
-  }
+if(recipeList != null){
+  recipeList.clear();
+} else {
+  recipeList = [];
 }
+}*/
 
 void clearIngredientList(){
 
@@ -80,7 +80,7 @@ void clearIngredientList(){
   }
 }
 
-class RecipesState extends State<InitRecipeList> {
+/*class RecipesState extends State<InitRecipeList> {
   @override
   void initState() {
 
@@ -103,7 +103,7 @@ class RecipesState extends State<InitRecipeList> {
   Widget build(BuildContext context) {
     return AutocompleteRecipeSearch();
   }
-}
+}*/
 
 class IngListState extends State<InitiateIngList> {
 
@@ -129,15 +129,15 @@ class IngListState extends State<InitiateIngList> {
   }
 }
 
-class AutocompleteRecipeSearch extends StatefulWidget{
+/*class AutocompleteRecipeSearch extends StatefulWidget{
   AutoRecipeSearchState createState() => AutoRecipeSearchState();
-}
+}*/
 
 class IngAutocomplete extends StatefulWidget{
   IngAutocompleteState createState() => IngAutocompleteState();
 }
 
-class AutoRecipeSearchState extends State<AutocompleteRecipeSearch>{
+/*class AutoRecipeSearchState extends State<AutocompleteRecipeSearch>{
 
   GlobalKey<AutoCompleteTextFieldState<Recipes>> recSearchKey = new GlobalKey();
 
@@ -214,7 +214,7 @@ class AutoRecipeSearchState extends State<AutocompleteRecipeSearch>{
         )
     );
   }
-}
+}*/
 
 class IngAutocompleteState extends State<IngAutocomplete>{
   AutoCompleteTextField searchTextField;
@@ -436,7 +436,7 @@ class MenuOptions {
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
-    Recipes,
+    //Recipes,
     Search,
     AdvancedSearch,
     MealPlanner,
@@ -506,6 +506,13 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   String errMsg = "";
   Map<String, bool> categoryMap = {};
   Map<String, bool> preferenceMap = {};
+  List<String> categoryNames = [];
+  List<String> preferenceNames = [];
+  String allTabCategory;
+  String allTabPreference;
+  int selectedCatRadio;
+  int selectedPrefRadio;
+
   var db = new Mysql();
   final recipesAllController = TextEditingController();
   final ingredientsAllController = TextEditingController();
@@ -656,20 +663,16 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
       nameParam.isEmpty ? linkParams += '?search_type=All' : linkParams += '&search_type=All';
 
-      await getCheckedCategories();
-      await getCheckedPreferences();
+      await getRadioCat();
+      await getRadioPref();
 
-      if(isAnyPreferenceChecked == true) {
-        prefParam = preferenceIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
-        linkParams += '&preferences=';
-        linkParams += prefParam;
-      }
+      categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+      linkParams += '&categories=';
+      linkParams += categParam;
 
-      if(isAnyCategoryChecked == true) {
-        categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
-        linkParams += '&categories=';
-        linkParams += categParam;
-      }
+      prefParam = preferenceIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
+      linkParams += '&preferences=';
+      linkParams += prefParam;
 
       if(ingText.isNotEmpty || selectedIngredientList.isNotEmpty){
 
@@ -695,12 +698,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
       nameParam.isEmpty ? linkParams += '?search_type=Category' : linkParams += '&search_type=Category';
       await getCheckedCategories();
 
-      if(isAnyCategoryChecked == true) {
+      //if(isAnyCategoryChecked == true) {
 
         categParam = categoryIDs.toString().replaceAll(new RegExp("[\\[\\]\\s]"), "");
         linkParams += '&categories=';
         linkParams += categParam;
-      }
+      //}
 
     } else if (searchType == searchTypeTextIng){
 
@@ -777,7 +780,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   @override
   void initState() {
 
-    clearRecipeList();
+    //clearRecipeList();
 
     /*setState(() {
       isCategoryLoading = true; //Data is loading
@@ -823,11 +826,18 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     if(responseCode == 200){
 
       newCategories = categoriesList;
+      categoryNames.clear();
 
       setState(() {
+        
         for(int i = 0; i < newCategories.length; i++){
           categoryMap.putIfAbsent(newCategories[i]['name'].toString(), () => false);
+          categoryNames.add(newCategories[i]['name']);
         }
+
+        categoryMap.remove("dessert");
+        categoryMap.putIfAbsent("dessert", () => false);
+        categoryNames.add(categoryNames.removeAt(0));
       });
     } else {
 
@@ -849,10 +859,12 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     if(responseCode == 200){
 
       newPreferences = preferencesList;
+      preferenceNames.clear();
 
       setState(() {
         for(int i = 0; i < newPreferences.length; i++){
           preferenceMap.putIfAbsent(newPreferences[i]['name'].toString(), () => false);
+          preferenceNames.add(newPreferences[i]['name']);
         }
       });
     } else {
@@ -863,6 +875,14 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
     setState(() {
       isPreferenceLoading = false;
     });
+  }
+
+  Future getRadioCat() async {
+    for(var i = 0; i < categoriesList.length; i++){
+      if(categoriesList[i]['name'] == allTabCategory){
+        categoryIDs.add(categoriesList[i]['id']);
+      }
+    }
   }
 
   Future getCheckedCategories() async {
@@ -885,22 +905,24 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
   Future getCheckedPreferences() async {
 
     preferenceMap.forEach((key, value) {
-
       if(value == true) {
-
         checkedPreferences.add(key);
-
         for(var i = 0; i < preferencesList.length; i++){
-
           if(preferencesList[i]['name'] == key){
-
             preferenceIDs.add(preferencesList[i]['id']);
           }
         }
-
         isAnyPreferenceChecked = true;
       }
     });
+  }
+
+  Future getRadioPref() async {
+    for(var i = 0; i < preferencesList.length; i++){
+      if(preferencesList[i]['name'] == allTabPreference){
+        preferenceIDs.add(preferencesList[i]['id']);
+      }
+    }
   }
 
   @override
@@ -920,10 +942,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                   indicatorColor: Colors.orange[700],
                   tabs: [
                     Tab(
-                      text: "All",
-                      icon: Icon(Icons.search),
-                    ),
-                    Tab(
                       text: "Category",
                       icon: Icon(Icons.book),
                     ),
@@ -934,6 +952,10 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                     Tab(
                       text: "Ingredient",
                       icon: Icon(Icons.local_dining),
+                    ),
+                    Tab(
+                      text: "Specific",
+                      icon: Icon(Icons.search),
                     ),
                   ]
               ),
@@ -948,254 +970,10 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                     child: SingleChildScrollView(
                       child: Column(
-                        children: [
-                          SizedBox(height: 40.0,),
-                          new Card(
-                            //key: searchResultKey,
-                            child: new Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(
-                                    color: Colors.amber,
-                                    width: 1.3, // Underline thickness
-                                  ))
-                              ),
-                              child: Text(
-                                "Input name (optional)",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20.0,),
-                          InitRecipeList(),
-                          SizedBox(height: 40.0,),
-                          new Card(
-                            //key: searchResultKey,
-                            child: new Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(
-                                    color: Colors.amber,
-                                    width: 1.3, // Underline thickness
-                                  ))
-                              ),
-                              child: Text(
-                                "Check Categories",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20.0,),
-                          isCategoryLoading ? Center(
-                            child: CircularProgressIndicator(),
-                          ) : Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Card(
-                                  child: (new ListView(
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    children: categoryMap.keys.map((String key) {
-                                      return new CheckboxListTile(
-                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
-                                        value: categoryMap[key],
-                                        activeColor: Colors.green,
-                                        checkColor: Colors.white,
-                                        onChanged: (bool value) {
-                                          setState(() {
-                                            categoryMap[key] = value;
-                                            if(categoryMap.values.contains(true)) {
-                                              isCatChecked = true;
-                                            } else {
-                                              isCatChecked = false;
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ))
-                              )
-                          ),
-                          SizedBox(height: 40.0,),
-                          new Card(
-                            //key: searchResultKey,
-                            child: new Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(
-                                    color: Colors.amber,
-                                    width: 1.3, // Underline thickness
-                                  ))
-                              ),
-                              child: Text(
-                                "Check Preferences",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20.0,),
-                          isPreferenceLoading ? Center(
-                            child: CircularProgressIndicator(),
-                          ) : Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Card(
-                                  child: (new ListView(
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    children: preferenceMap.keys.map((String key) {
-                                      return new CheckboxListTile(
-                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
-                                        value: preferenceMap[key],
-                                        activeColor: Colors.green,
-                                        checkColor: Colors.white,
-                                        onChanged: (bool value) {
-                                          setState(() {
-                                            preferenceMap[key] = value;
-                                            if(preferenceMap.values.contains(true)) {
-                                              isPrefChecked = true;
-                                            } else {
-                                              isPrefChecked = false;
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ))
-                              )
-                          ),
-                          SizedBox(height: 40.0,),
-                          new Card(
-                            //key: searchResultKey,
-                            child: new Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(
-                                    color: Colors.amber,
-                                    width: 1.3, // Underline thickness
-                                  ))
-                              ),
-                              child: Text(
-                                "Input Ingredients",
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 20.0,),
-                          isIngredientLoading ? Center(
-                            child: CircularProgressIndicator(),
-                          ) : Container(
-                            height: 350,
-                            child: InitiateIngList(),
-                          ),
-                          SizedBox(height: 25.0,),
-                          /*new Card(
-                            child: new Container(
-                              padding: EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                  border: Border(bottom: BorderSide(
-                                    color: Colors.amber,
-                                    width: 1.3, // Underline thickness
-                                  ))
-                              ),
-                              child: new CheckboxListTile(
-                                title: new Text("Search with your saved ingredients", style: TextStyle(color: Colors.black54),),
-                                value: isUserIngListChecked,
-                                activeColor: Colors.green,
-                                checkColor: Colors.white,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    isUserIngListChecked = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),*/
-                          isAllErr ? Center(
-                              child: Text(
-                                errMsg,
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.red[400],
-                                ),
-                              ),
-                          ) : SizedBox(height: 5.0,),
-                          isLoading ? Center(
-                            child: CircularProgressIndicator(),
-                          ) : new RaisedButton(
-                            child: Text('Search'),
-                            color: Colors.orange[600],
-                            textColor: Colors.white,
-                            onPressed: () async {
-                              setState(() {
-                                isLoading = true; //Data is loading
-                              });
-
-                              errMsg = "";
-                              isAllErr = false;
-
-                              if( ( isCatChecked == false ) || ( isPrefChecked == false ) ){
-
-                                errMsg += "Error: At least 1 category and preference box must be selected.\n\n";
-                                isAllErr = true;
-                                setState(() {
-                                  isLoading = false; //Data is loading
-                                });
-                              }
-
-                              if( selectedIngredientList.isEmpty && ingredientsAllController.text.trim().isEmpty ) {
-
-                                errMsg += "Error: An ingredient must be entered.\n\n";
-                                isAllErr = true;
-                                setState(() {
-                                  isLoading = false; //Data is loading
-                                });
-                              }
-
-                              if( isAllErr == false ) {
-
-                                clearResults();
-                                isIngredientSearch = true;
-                                print("recTextField is " + recTextField.textField.controller.text);
-                                print("chosenIngredients is " + chosenIngredients.toString());
-                                await metaSearch(searchTypeTextAll, recTextField.textField.controller.text, chosenIngredients.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ","));
-                                searchedFromOtherPg = true;
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
-                                searchResultLabel = "Advanced Search Results";
-                              }
-                            },
-                          ),
-                          SizedBox(height: 50.0,),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: height,
-                    width: width,
-                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
-
-                    child: SingleChildScrollView(
-                      child: Column(
                           children: [
-                            SizedBox(height: 40.0,),
-                            InitRecipeList(),
-                            SizedBox(height: 40.0,),
+                            /*SizedBox(height: 40.0,),
+                            InitRecipeList(),*/
+                            SizedBox(height: 20.0,),
                             new Card(
                               child: new Container(
                                 padding: EdgeInsets.all(10),
@@ -1254,7 +1032,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 clearResults();
 
-                                await metaSearch(searchTypeTextCat, recTextField.textField.controller.text, null);
+                                await metaSearch(searchTypeTextCat, null, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
                                 searchResultLabel = "Advanced Search Results";
@@ -1272,9 +1050,9 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                     child: SingleChildScrollView(
                       child: Column(
                           children: [
-                            SizedBox(height: 40.0,),
-                            InitRecipeList(),
-                            SizedBox(height: 40.0,),
+                            /*SizedBox(height: 40.0,),
+                            InitRecipeList(),*/
+                            SizedBox(height: 20.0,),
                             new Card(
                               child: new Container(
                                 padding: EdgeInsets.all(10),
@@ -1333,7 +1111,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
 
                                 clearResults();
 
-                                await metaSearch(searchTypeTextPref, recTextField.textField.controller.text, null);
+                                await metaSearch(searchTypeTextPref, null, null);
                                 searchedFromOtherPg = true;
                                 Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
                                 searchResultLabel = "Advanced Search Results";
@@ -1352,7 +1130,28 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                     child: SingleChildScrollView(
                       child: Column(
                           children: [
-                            SizedBox(height: 40.0,),
+                            SizedBox(height: 20.0,),
+                            new Card(
+                              //key: searchResultKey,
+                              child: new Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(
+                                      color: Colors.amber,
+                                      width: 1.3, // Underline thickness
+                                    ))
+                                ),
+                                child: Text(
+                                  "Search with additional ingredients",
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 30.0,),
                             isIngredientLoading ? Center(
                               child: CircularProgressIndicator(),
                             ) : Container(
@@ -1406,7 +1205,6 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   isLoading = true; //Data is loading
                                 });
 
-                                clearResults();
                                 errMsg = "";
                                 isIngredientErr = false;
 
@@ -1419,6 +1217,7 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                                   });
                                 } else {
 
+                                  clearResults();
                                   isIngredientErr = false;
                                   isIngredientSearch = true;
                                   print("chosenIngredients is " + chosenIngredients.toString());
@@ -1433,6 +1232,232 @@ class SearchWidgetState extends State<SearchWidget> with TickerProviderStateMixi
                             ),
                             SizedBox(height: 40.0,),
                           ]
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: height,
+                    width: width,
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          SizedBox(height: 20.0,),
+                          Container(
+                            margin: EdgeInsets.all(10.0),
+                            padding: EdgeInsets.all(10),
+                            child: Text("Find recipes with a specific Category and Preference combination",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10.0,),
+                          /*new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Input name (optional)",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          InitRecipeList(),
+                          SizedBox(height: 40.0,),*/
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Select Category",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          isCategoryLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.75,
+                              //padding: const EdgeInsets.all(4.0),
+                              child: Card(
+                                  child: (new ListView(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    children: categoryMap.keys.map((String key) {
+                                      return new RadioListTile(
+                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                        value: categoryNames.indexOf(key),
+                                        activeColor: Colors.redAccent[200],
+                                        groupValue: selectedCatRadio,
+                                        onChanged: (val) => setState(() {
+                                          selectedCatRadio = val;
+                                          allTabCategory = key;
+                                          print("allTabCategory is now " + allTabCategory.toString());
+                                        }),
+                                      );
+                                    }).toList(),
+                                  ))
+                              )
+                          ),
+                          SizedBox(height: 40.0,),
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Select Preference",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          isPreferenceLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.75,
+                              //padding: const EdgeInsets.all(4.0),
+                              child: Card(
+                                  child: (new ListView(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    children: preferenceMap.keys.map((String key) {
+                                      return new RadioListTile(
+                                        title: new Text(key, style: TextStyle(color: Colors.black54),),
+                                        value: preferenceNames.indexOf(key),
+                                        activeColor: Colors.redAccent[200],
+                                        groupValue: selectedPrefRadio,
+
+                                        onChanged: (val) => setState(() {
+                                          selectedPrefRadio = val;
+                                          allTabPreference = key;
+                                          print("allTabPreference is now " + allTabPreference.toString());
+                                        }),
+                                      );
+                                    }).toList(),
+                                  ))
+                              )
+                          ),
+                          SizedBox(height: 40.0,),
+                          new Card(
+                            //key: searchResultKey,
+                            child: new Container(
+                              padding: EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                  border: Border(bottom: BorderSide(
+                                    color: Colors.amber,
+                                    width: 1.3, // Underline thickness
+                                  ))
+                              ),
+                              child: Text(
+                                "Enter any additional ingredients",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.0,),
+                          isIngredientLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : Container(
+                            height: 350,
+                            child: InitiateIngList(),
+                          ),
+                          SizedBox(height: 25.0,),
+                          isAllErr ? Center(
+                            child: Text(
+                              errMsg,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.red[400],
+                              ),
+                            ),
+                          ) : SizedBox(height: 5.0,),
+                          isLoading ? Center(
+                            child: CircularProgressIndicator(),
+                          ) : new RaisedButton(
+                            child: Text('Search'),
+                            color: Colors.orange[600],
+                            textColor: Colors.white,
+                            onPressed: () async {
+                              setState(() {
+                                isLoading = true; //Data is loading
+                              });
+
+                              errMsg = "";
+                              isAllErr = false;
+
+                              if( ( allTabCategory == null ) || ( allTabPreference == null ) ){
+
+                                errMsg += "Error: 1 category and 1 preference must be selected.\n\n";
+                                isAllErr = true;
+                                setState(() {
+                                  isLoading = false; //Data is loading
+                                });
+                              }
+
+                              if( selectedIngredientList.isEmpty && ingredientsAllController.text.trim().isEmpty ) {
+
+                                errMsg += "Error: An ingredient must be entered.\n\n";
+                                isAllErr = true;
+                                setState(() {
+                                  isLoading = false; //Data is loading
+                                });
+                              }
+
+                              if( isAllErr == false ) {
+
+                                clearResults();
+                                isIngredientSearch = true;
+                                print("chosenIngredients is " + chosenIngredients.toString());
+                                await metaSearch(searchTypeTextAll, null, chosenIngredients.toString().replaceAll("[", "").replaceAll("]", "").replaceAll(", ", ","));
+                                searchedFromOtherPg = true;
+                                Navigator.push(context, MaterialPageRoute(builder: (context)=>BasicSearch()));
+                                searchResultLabel = "Advanced Search Results";
+                              }
+                            },
+                          ),
+                          SizedBox(height: 50.0,),
+                        ],
                       ),
                     ),
                   ),

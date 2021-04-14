@@ -128,14 +128,14 @@ if(review == null){
           ),
         ),
         actions: [
-          FlatButton(
+          /*FlatButton(
             child: Text('Add to List'),
             onPressed: () {
               addToList(id);
               retrieveList();
               Navigator.of(context).pop();
             },
-          ),
+          ),*/
           FlatButton(
             child: Text('More Details'),
             onPressed: () {
@@ -212,11 +212,11 @@ class RecipePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    retrieveList();
+    //retrieveList();
     return MaterialApp(
       title: _title,
       home: DefaultTabController(
-          length: 2,
+          length: 1,
           child: Scaffold(
               appBar: AppBar(
                 title: Text(_title),
@@ -227,14 +227,14 @@ class RecipePage extends StatelessWidget {
                 bottom: TabBar(
                   tabs:[
                     Tab(icon: Icon(Icons.kitchen)),
-                    Tab(icon: Icon(Icons.list)),
+                    //Tab(icon: Icon(Icons.list)),
                   ],
                 ),
               ),
               body:TabBarView(
                 children:[
                   MyStatelessWidget(),
-                  MyMealPlanner(),
+                  //MyMealPlanner(),
                 ],
               )
           )

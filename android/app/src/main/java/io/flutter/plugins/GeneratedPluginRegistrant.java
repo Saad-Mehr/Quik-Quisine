@@ -13,7 +13,8 @@ import io.flutter.embedding.engine.FlutterEngine;
 @Keep
 public final class GeneratedPluginRegistrant {
   public static void registerWith(@NonNull FlutterEngine flutterEngine) {
-    flutterEngine.getPlugins().add(new com.hamidwakili.another_flushbar.AnotherFlushbarPlugin());
+    flutterEngine.getPlugins().add(new dev.vbonnet.flutterwebbrowser.FlutterWebBrowserPlugin());
     flutterEngine.getPlugins().add(new io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin());
+    flutterEngine.getPlugins().add(new io.flutter.plugins.urllauncher.UrlLauncherPlugin());
   }
 }

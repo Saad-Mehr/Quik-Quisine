@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:quikquisine490/Webilicious.dart';
 import 'search.dart';
 import 'package:http/http.dart' as http;
 import 'package:quikquisine490/user.dart';
@@ -125,6 +126,12 @@ if(review == null){
           ),
         ),
         actions: [
+          FlatButton(
+            child: Text('Buy ingredients'),
+            onPressed: () {
+            Navigator.push(context,MaterialPageRoute(builder: (context) => Webilicious(ingredients: ingredients)));
+            },
+          ),
           FlatButton(
             child: Text('Add to List'),
             onPressed: () {

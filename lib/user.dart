@@ -23,6 +23,7 @@ Future<int> LogIn(String email, String password) async{
   String msg = json.encode(jsonbody);
   String url = 'https://quik-quisine.herokuapp.com/api/v1/users/sign_in';
   Map<String,String> headers = {'Content-Type': 'application/json; charset=UTF-8'};
+  print("Attempting to connect...");
   http.Response response = await http.post(url, headers: headers, body: msg);
   if (response.statusCode == 200) {
     var parsedJson = json.decode(response.body);

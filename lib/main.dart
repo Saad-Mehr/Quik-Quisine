@@ -120,6 +120,7 @@ class _MyappState extends State<Myapp> {
                       color: Color(0xffEE7B23),
                       onPressed: () async{
 
+
                           setState((){isLoading = true;});
                           int response_code = await LogIn(_email_controller.text, _password_controller.text);
                           if (response_code == 200)
@@ -155,8 +156,27 @@ class _MyappState extends State<Myapp> {
                               opacityAndLoading();
                             });
                           }
+                        } else if ( response_code == 401 ) {
+                          setState(() {
+                            print('Status code is: $response_code');
+                            statusText = 'Incorrect password';
+                            opacityAndLoading();
+                          });
+                        } else if ( response_code == 500 ) {
+                          setState(() {
+                            print('Status code is: $response_code');
+                            statusText = 'Email does not exist';
+                            opacityAndLoading();
+                          });
+                        } else {
+                          setState(() {
+                            print('Status code is: $response_code');
+                            statusText = 'Unknown error';
+                            opacityAndLoading();
+                          });
+                        }
                         },
-                      ),
+                    ),
     ],
     ),
     ),

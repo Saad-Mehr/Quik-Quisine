@@ -17,12 +17,13 @@ import 'user.dart';
 import 'package:mysql1/mysql1.dart' as mysql1Dart;
 
 AutoCompleteTextField searchTextField;
-TextEditingController controller = new TextEditingController();
-ItemScrollController _scrollController = ItemScrollController();
+//TextEditingController controller = new TextEditingController();
+//ItemScrollController _scrollController = ItemScrollController();
 String searchResultLabel = "Recipes based on your ingredients";
-bool isLoading = false;
+//bool isLoading = false;
 bool isRecipeListLoading = false;
 bool searchedFromOtherPg = false;
+bool isFirstSearch = true;
 
 class InitiateRecipeList extends StatefulWidget {
 
@@ -31,15 +32,11 @@ class InitiateRecipeList extends StatefulWidget {
 
 Future<void> clearRecipeListSamePage() async {
 
-  //List temp = recipeList;
-
   if(recipeList != null){
     recipeList.clear();
   } else {
     recipeList = [];
   }
-
-  //recipeList = temp;
 }
 
 class RecipeListState extends State<InitiateRecipeList> {
@@ -103,9 +100,12 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                   fontSize: 16.0,
                 ),
                 decoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(10, 30, 10, 20),
                   hintText: 'Search recipes',
                   prefixIcon: Icon(Icons.search),
                   isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
                   focusColor: Colors.red,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.0),
@@ -117,12 +117,22 @@ class AutocompleteSearchState extends State<AutocompleteSearch>{
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text(item.name,
-                        style: TextStyle(
-                            fontSize: 16.0
-                        ),),
+                      Expanded(
+                        child: Text(item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 16.0
+                          ),
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsets.all(15.0),
+                      ),
+                      Icon(
+                          Icons.add_circle,
+                          size: 25.0,
+                          color: Colors.green[400]
                       ),
                     ],
                   );
@@ -162,7 +172,7 @@ class MenuOptions {
   static const String Logout = 'Logout';
 
   static const List<String> options = <String>[
-    Recipes,
+    //Recipes,
     Search,
     AdvancedSearch,
     MealPlanner,
@@ -227,6 +237,53 @@ class BasicSearch extends StatelessWidget {
     }
   }
 
+  /*  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+          title: Text(_title),
+          backgroundColor: Colors.deepOrangeAccent,
+          actions: <Widget>[
+            PopupMenuButton<String>(
+                onSelected: (option) => optionAction(option, context),
+                itemBuilder: (BuildContext context) {
+                  return MenuOptions.options.map((String option){
+                    return PopupMenuItem<String>(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList();
+                }
+            )
+          ],
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => {
+              searchedFromOtherPg = false,
+              Navigator.pop(context, false),
+            }
+          ),
+          bottom: TabBar(
+            tabs:[
+              Tab(icon: Icon(Icons.search_sharp)),
+              Tab(icon: Icon(Icons.kitchen_sharp)),
+            ],
+          ),
+        ),
+          body: TabBarView(
+            children: [
+              BasicSearchWidget(),
+              MyMealPlanner(),
+            ],
+          ),
+      ),
+      ),
+    );
+  }*/
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -269,17 +326,14 @@ class BasicSearchWidget extends StatefulWidget {
 
 class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProviderStateMixin {
 
-  bool isFirstSearch = true;
   var db = new Mysql();
 
   void initState() {
 
-    setState(() {
-      isRecipeListLoading = true;
-    });
+    super.initState();
 
-    ingredientsList.clear();
-    clearRecipeListSamePage();
+    ingList.clear();
+    //clearRecipeListSamePage();
 
     if(searchedFromOtherPg == false){
       clearResults();
@@ -296,8 +350,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
       categories();
     }
 
-    isLoading = false;
-    super.initState();
+    //isLoading = false;
   }
 
 
@@ -316,7 +369,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
             r[results.fields[i].name] = row[i];
           }
 
-          ingredientsList.add(r);
+          ingList.add(r);
         });
       });
     });
@@ -331,11 +384,11 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     print("searchedIngIDs is now " + searchedIngIDs.toString());
 
     for(int i = 0; i < searchedIngIDs.length; i++){
-      for(int j = 0; j < ingredientsList.length; j++){
-        if(ingredientsList[j]['name'] == searchedIngIDs[i]){
+      for(int j = 0; j < ingList.length; j++){
+        if(ingList[j]['name'] == searchedIngIDs[i]){
 
-          searchedIngNames.add(ingredientsList[j]['name']);
-          searchedIngIDs[i] = ingredientsList[j]['id'].toString();
+          searchedIngNames.add(ingList[j]['name']);
+          searchedIngIDs[i] = ingList[j]['id'].toString();
         }
       }
     }
@@ -395,6 +448,10 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     List<dynamic> tempRecipes = [];
     List<dynamic> tempIngList = [];
 
+    setState(() {
+      isRecipeListLoading = true;
+    });
+
     await getIngredients();
 
     if( userIngredientNamesList.isNotEmpty && userIngredientNamesList != null ){ // i.e. if user has 1+ ingredients
@@ -405,7 +462,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     print("ingText is now " + ingText);
     userIngredientNamesList = ingText.split(',');
     print("userIngredientNamesList is now " + userIngredientNamesList.toString());
-    print("ingredientsList is now " + ingredientsList.toString());
+    print("ingredientsList is now " + ingList.toString());
     print("ingText split is now " + ingText.split(',').toString());
 
     if(searchText != null && searchText.isNotEmpty) {
@@ -438,6 +495,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     searchList.forEach((searchList) => recipeNames.add(searchList['name']));
     searchList.forEach((searchList) => recipeDesc.add(searchList['description']));
     searchList.forEach((searchList) => recipeServing.add(searchList['serving']));
+    searchList.forEach((searchList) => recipeChef.add(searchList['username']));
     searchList.forEach((searchList) => recipeIngredients.add(searchList['list_of_ingredients']));
     searchList.forEach((searchList) => recipePicURLs.add(searchList['get_image_url']));
     searchList.forEach((searchList) => recipePrep.add(searchList['preparation']));
@@ -469,8 +527,8 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
     recipesPageTitle = "Search Results";
 
     setState(() {
-      isLoading = false;
       isRecipeListLoading = false;
+      isFirstSearch = false;
     });
   }
 
@@ -485,27 +543,38 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
         child: new Column(
           children: <Widget>[
             SizedBox(height: 30.0,),
-            Text(
-              "Discover",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.black54,
+            new Card(
+              //key: searchResultKey,
+              child: new Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                        color: Colors.amber,
+                        width: 1.3, // Underline thickness
+                    ))
+                ),
+                child: Text(
+                  "Discover",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.black54,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 30.0,),
             InitiateRecipeList(),
             SizedBox(height: 30.0,),
-            isLoading ? Center(
-              child: CircularProgressIndicator(),
-            ) : new RaisedButton(
+            new RaisedButton(
               child: Text('Go!'),
               color: Colors.orange[600],
               textColor: Colors.white,
               onPressed: () async {
 
                 setState(() {
-                  isLoading = true;
+                  isRecipeListLoading = true;
                 });
 
                 searchedFromOtherPg = false;
@@ -540,9 +609,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                     });
                   }
 
-                  clearRecipeListSamePage();
                   clearResults();
-                  //categories();
 
                   categoryIDs = retrievalCatIDs;
                   await searchRecipeNames( searchTextField.textField.controller.text );
@@ -555,7 +622,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                 print("totalRecipes in go button is now length " + totalRecipes.length.toString());
 
                 setState(() {
-                  isLoading = false;
+                  isRecipeListLoading = false;
                 });
               },
             ),
@@ -566,10 +633,9 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
                 textColor: Colors.white,
                 onPressed: () async {
 
-                  print("searchedFromOtherPg was " + searchedFromOtherPg.toString());
                   searchedFromOtherPg = false;
-                  print("searchedFromOtherPg is now  " + searchedFromOtherPg.toString());
-                  print("totalRecipes are of length " + totalRecipes.length.toString() + " with titles " + totalRecipes[0]['name']);
+                  /*print("searchedFromOtherPg is now  " + searchedFromOtherPg.toString());
+                  print("totalRecipes are of length " + totalRecipes.length.toString() + " with titles " + totalRecipes[0]['name']);*/
                   Navigator.push(context,MaterialPageRoute(builder: (context) => SearchPage()));
                 }
             ),
@@ -584,12 +650,7 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
             new Card(
               //key: searchResultKey,
               child: new Container(
-                padding: EdgeInsets.only(
-                  top: 10,
-                  bottom: 10, // Space between underline and text
-                  right: 10,
-                  left: 10,
-                ),
+                padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(
                       color: Colors.amber,
@@ -606,22 +667,47 @@ class BasicSearchWidgetState extends State<BasicSearchWidget> with TickerProvide
               ),
             ),
             SizedBox(height: 30.0,),
+            /*
             (userIngredientNamesList.isEmpty && searchedFromOtherPg == false) ? Center(
               child: CircularProgressIndicator(),
             ) : Container(),
-            ( filteredSortedTotal.isEmpty ) ? Center(
+            */
+            /*(if came back with back arrow) then (reload to show recipes based on ingredients) (else)
+
+            (if recipes are loading) then (progress)
+                (else)
+                    (if recipes.length > 0) then (show recipes)
+                        (else) show textbox
+            */
+
+            (isRecipeListLoading == true || isFirstSearch == true) ? Center(
+              child: CircularProgressIndicator(),
+            ) : (
+                totalRecipes.length > 0 ?
+                SizedBox(
+                  height: 510,
+                  child: MyStatelessWidget(),
+                ) : Text(
+                    "No results to display",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black54,
+                    ),
+                )
+            ),
+
+            /*SizedBox(
+              height: 510,
+              child: MyStatelessWidget(),
+            ),*/
+
+            /*( filteredSortedTotal.isEmpty && ( searchedFromOtherPg == false ) ) ? Center(
               child: CircularProgressIndicator(),
             ) : SizedBox(
               height: 510,
               child: MyStatelessWidget(),
-            ),
-            /*
-            setState(() {
-      isRecipeListLoading = true;
-    });
-            */
+            ),*/
 
-            // _scrollController
           ],
       ),
       ),

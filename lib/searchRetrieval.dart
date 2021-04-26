@@ -63,12 +63,12 @@ Future<int> preferences() async {
   if (response.statusCode == 200) {
 
     http.Response prefResponse = await http.get(preferencesURL, headers: headers);
-    print("categories response is: ${prefResponse.statusCode}");
+    print("preferences response is: ${prefResponse.statusCode}");
 
     var parsedJson = json.decode(prefResponse.body);
     var data = parsedJson['data'];
     for(var i = 0; i < data.length; i++){
-      preferencesList.add(data[i]);
+      preferencesList.add(data[data.length-i-1]);
     }
     print("data is: ${data[0]}");
     print("preferences are: $preferencesList");

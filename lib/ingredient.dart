@@ -7,6 +7,9 @@ import 'package:http/http.dart' as http;
 // the variable that stores the user existing ingredients is declared in the user.dart.(selectedIngredientList)
 List<Ingredients> ingredientList = [];
 
+// this is used for advanced search (not saved)
+List<dynamic> chosenIngredients = [];
+
 class Ingredients {
   int id;
   String name;
@@ -70,6 +73,7 @@ Future<int> ingredients() async {
     var data = parsedJson['data'];
     for(var i = 0; i < data.length; i++){
       ingredientList.add(new Ingredients(data[i]["id"], data[i]["name"]));
+      //tempIngList.add(new Ingredients(data[i]["id"], data[i]["name"]));
     }
     print("data is: ${data[0]["name"]}");
     print("ingredients are: $ingredientList");

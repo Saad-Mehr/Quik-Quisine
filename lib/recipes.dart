@@ -6,6 +6,7 @@ import 'package:quikquisine490/user.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'recipedetails.dart';
+import 'user.dart';
 
 var resultSearchTerm;
 List<dynamic> resultNames;
@@ -17,14 +18,10 @@ List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = [];
 String recipesPageTitle;
 
-Map<String, String> get headers => {
-  "X-User-Email": UserList[0],
-  "X-User-Token": UserList[2],
-  'Content-Type': 'application/json; charset=UTF-8',
-};
-
 
 Future<List> addToList(int id) async{
+
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   var url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/'+UserList[3].toString()+'/meal_planner_baskets';
   var body = {};
   body["user_id"] =UserList[3].toString();
@@ -37,17 +34,20 @@ Future<List> addToList(int id) async{
 }
 
 Future retrieveList() async{
-
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/users/users/'+UserList[3].toString()+'/meal_planner_baskets', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   mealPlannerRecipes = data;
+  for(int i = 0; i < mealPlannerRecipes.length;i++)
+  print("in meal planner" + totalRecipes[i]['get_image_url'].toString());
   //print('mealPlanner data is ------------------------ ' + mealPlannerRecipes.toString());
   //print('mealPlanner[0] data is ------------------------ ' + mealPlannerRecipes[0].toString());
   //print('mealPlannerRecipes images are: ------------------------- ' + mealPlannerRecipes[0]['get_image_url'].toString());
 }
 
 Future<List> deleteList(int id) async{
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   http.Response response = await http.delete('https://quik-quisine.herokuapp.com/api/v1/users/meal_planner_baskets/'+id.toString(),headers: headers);
   print(response.statusCode);
 }
@@ -71,6 +71,7 @@ Future sortAllIngredients() async {
 }
 
 Future getSearchIng() async {
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   sortedTotalRecipeIng.clear();
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
   var parsedJson = jsonDecode(response.body);
@@ -91,6 +92,7 @@ Future getSearchIng() async {
 }
 
 Future getRecipes() async{
+  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
   sortedTotalRecipeIng.clear();
   filteredSortedTotal.clear();
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes', headers: headers);
@@ -100,7 +102,7 @@ Future getRecipes() async{
   await sortAllIngredients();
 }
 
-Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String instructions,String serving,String ingredients,double AverageRating, String review, int id) {
+Future _ackAlert(BuildContext context,Widget thumbnail, String title, String subtitle, String chef, int user_id, String instructions,String serving,String ingredients,double AverageRating, String review, int id) {
 if(review == null){
   review = 'No reviews yet.';
 }
@@ -113,7 +115,7 @@ if(review == null){
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n" + subtitle + "\n" + serving + "\nIngredients:\n" + ingredients + '\nInstructions:\n' + instructions +'\nRating:'),
+              Text(title + "\n" + subtitle + "\n" + chef + "\n" + serving + "\nIngredients:\n" + ingredients + '\nRating:'),
               SmoothStarRating(
                 allowHalfRating: true,
                 starCount: 5,
@@ -132,21 +134,17 @@ if(review == null){
             Navigator.push(context,MaterialPageRoute(builder: (context) => Webilicious(ingredients: ingredients)));
             },
           ),
-          FlatButton(
-            child: Text('Add to List'),
-            onPressed: () {
-              addToList(id);
-              retrieveList();
-              Navigator.of(context).pop();
-            },
-          ),
+
           FlatButton(
             child: Text('More Details'),
             onPressed: () {
+              // update the other_profile
+              otherUserList[0] = user_id;
+              otherUserList[1] = chef;
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => new recipedetails(thumbnail,title,subtitle,instructions,serving,ingredients,id,AverageRating,review),
+                  builder: (context) => new recipedetails(thumbnail,title,subtitle, chef, user_id, instructions,serving,ingredients,id,AverageRating,review),
                 ),
               );
             },
@@ -157,7 +155,10 @@ if(review == null){
   );
 }
 
-Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String serving, String instructions, int id) {
+Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String subtitle, String chef, int user_id, String instructions,String serving,double AverageRating, String review, int id) {
+  if(review == null){
+    review = 'No reviews yet.';
+  }
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -167,7 +168,15 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(title + "\n" + subtitle + "\n" + serving + '\n\nInstructions:\n' + instructions)
+              Text(title + "\n" + subtitle + "\n" + serving +'\nRating:'),
+              SmoothStarRating(
+                allowHalfRating: true,
+                starCount: 5,
+                rating: AverageRating,
+                size: 20,
+                color: Colors.amber,
+                borderColor: Colors.black,
+              ),
             ],
           ),
         ),
@@ -180,6 +189,17 @@ Future _ackAlert2(BuildContext context,Widget thumbnail, String title, String su
               Navigator.of(context).pop();
             },
           ),
+          FlatButton(
+            child: Text('More Details'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => new recipedetails(thumbnail,title,subtitle, chef, user_id, instructions,serving,"ingredients",id,AverageRating,review),
+                ),
+              );
+            },
+          )
         ],
       );
     },
@@ -191,12 +211,14 @@ class RecipePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //retrieveList();
     return MaterialApp(
       title: _title,
       home: DefaultTabController(
-          length: 2,
+          length: 1,
           child: Scaffold(
-              appBar: AppBar(title: Text(_title),
+              appBar: AppBar(
+                title: Text(_title),
                 backgroundColor: Colors.teal[400],
                 leading: IconButton(icon:Icon(Icons.arrow_back),
                   onPressed:() => Navigator.pop(context, false),
@@ -204,14 +226,14 @@ class RecipePage extends StatelessWidget {
                 bottom: TabBar(
                   tabs:[
                     Tab(icon: Icon(Icons.kitchen)),
-                    Tab(icon: Icon(Icons.list)),
+                    //Tab(icon: Icon(Icons.list)),
                   ],
                 ),
               ),
               body:TabBarView(
                 children:[
                   MyStatelessWidget(),
-                  MyMealPlanner(),
+                  //MyMealPlanner(),
                 ],
               )
           )
@@ -334,6 +356,8 @@ class _ArticleDescription extends StatelessWidget {
     Key key,
     this.title,
     this.subtitle,
+    this.chef,
+    this.user_id,
     this.instructions,
     this.serving,
     this.ingredients,
@@ -344,6 +368,8 @@ class _ArticleDescription extends StatelessWidget {
 
   final String title;
   final String subtitle;
+  final String chef;
+  final int user_id;
   final String instructions;
   final String serving;
   final String ingredients;
@@ -365,7 +391,7 @@ class _ArticleDescription extends StatelessWidget {
             children: <Widget>[
               Text(
                 '$title',
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -374,6 +400,16 @@ class _ArticleDescription extends StatelessWidget {
               const Padding(padding: EdgeInsets.only(bottom: 2.0)),
               Text(
                 '$subtitle',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12.0,
+                  color: Colors.black54,
+                ),
+              ),
+              const Padding(padding: EdgeInsets.only(bottom: 2.0)),
+              Text(
+                '$chef',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -432,6 +468,8 @@ class CustomListItemTwo extends StatelessWidget {
     this.thumbnail,
     this.title,
     this.subtitle,
+    this.chef,
+    this.user_id,
     this.serving,
     this.ingredients,
     this.instructions,
@@ -443,6 +481,8 @@ class CustomListItemTwo extends StatelessWidget {
   final Widget thumbnail;
   final String title;
   final String subtitle;
+  final String chef;
+  final int user_id;
   final String serving;
   final String ingredients;
   final String instructions;
@@ -459,13 +499,13 @@ class CustomListItemTwo extends StatelessWidget {
     return GestureDetector(
       onTap: () {
 
-        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.instructions,this.serving,this.ingredients,this.AverageRating, this.review, this.id);
+        _ackAlert(context,this.thumbnail, this.title, this.subtitle, this.chef, this.user_id, this.instructions,this.serving,this.ingredients,this.AverageRating, this.review, this.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
 
         child: SizedBox(
-          height: 155,
+          height: 172,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -479,6 +519,7 @@ class CustomListItemTwo extends StatelessWidget {
                   child: _ArticleDescription(
                     title: title,
                     subtitle: subtitle,
+                    chef: chef,
                     serving: serving,
                     ingredients: ingredients,
                     AverageRating: AverageRating,
@@ -501,6 +542,8 @@ class CustomListItemThree extends StatelessWidget {
     this.thumbnail,
     this.title,
     this.subtitle,
+    this.chef,
+    this.user_id,
     this.serving,
     this.instructions,
     this.AverageRating,
@@ -511,17 +554,21 @@ class CustomListItemThree extends StatelessWidget {
   final Widget thumbnail;
   final String title;
   final String subtitle;
+  final String chef;
+  final int user_id;
   final String serving;
   final String instructions;
-  final double AverageRating;
+  double AverageRating;
   final String review;
   final int id;
 
   @override
   Widget build(BuildContext context) {
+    if(AverageRating==null)
+      AverageRating = 0;
     return GestureDetector(
       onTap: () {
-        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.serving, this.instructions, this.id);
+        _ackAlert2(context,this.thumbnail, this.title, this.subtitle, this.chef, this.user_id, this.instructions,this.serving,this.AverageRating, this.review, this.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -578,6 +625,8 @@ class MyStatelessWidget extends StatelessWidget {
               title: totalRecipes[index]['name'],
               subtitle: totalRecipes[index]['description'],
               serving: "Servings: ${totalRecipes[index]['serving']}",
+              chef: "@${totalRecipes[index]['username']} \n",
+              user_id: totalRecipes[index]['user_id'],
               ingredients: " ${filteredSortedTotal[index]}",
               instructions: "${totalRecipes[index]['preparation']}",
               id: totalRecipes[index]['id'],
@@ -597,11 +646,19 @@ class MyMealPlanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    retrieveList();
+
     return ListView.builder(
       itemCount: mealPlannerRecipes.length,
       itemBuilder: (BuildContext context,index){
-        return CustomListItemThree(
+        return new Card(
+          child: new Container(
+            padding: EdgeInsets.only(
+              top: 10,
+              bottom: 10, // Space between underline and text
+              right: 10,
+              left: 10,
+            ),
+        child: CustomListItemThree(
           thumbnail: Container(
             child: Image.network(mealPlannerRecipes[index]['get_image_url'], fit: BoxFit.fill,),
           ),
@@ -612,6 +669,8 @@ class MyMealPlanner extends StatelessWidget {
           id: mealPlannerRecipes[index]['id'],
           AverageRating: double.parse(totalRecipes[index]['AverageRating']),
           review: totalRecipes[index]['review'],
+        ),
+        ),
         );
       },
     );

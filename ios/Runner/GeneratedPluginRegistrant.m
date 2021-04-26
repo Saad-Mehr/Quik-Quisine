@@ -9,7 +9,6 @@
 #else
 @import flutter_web_browser;
 #endif
-
 #if __has_include(<shared_preferences/FLTSharedPreferencesPlugin.h>)
 #import <shared_preferences/FLTSharedPreferencesPlugin.h>
 #else

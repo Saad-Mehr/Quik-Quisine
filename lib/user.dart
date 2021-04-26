@@ -6,12 +6,15 @@ import 'ingredient.dart';
 
 List UserList = [];
 List userIngredientList = [];
+List otherUserList = [];
 
 // this is the list of the user ingredient
 // it's declared here so that we can check whether to display the 'my ingredient' page after user signup or login
 List<Ingredients> selectedIngredientList = [];
 
 Future<int> LogIn(String email, String password) async{
+  //initialize otheruserlist
+  otherUserList = [0,""];
   var resBody = {};
   resBody["email"] = email;
   resBody["password"] = password;

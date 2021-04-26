@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:quikquisine490/recipe.dart';
 import 'HomePage.dart';
 import 'user.dart';
 import 'SignInPage.dart';
 import 'search.dart';
 import 'userIngredientList.dart';
 import 'SearchResultsSamePage.dart';
+import 'ingredient.dart';
 
 
 void main() {
@@ -117,18 +119,42 @@ class _MyappState extends State<Myapp> {
                       child: Text('Login'),
                       color: Color(0xffEE7B23),
                       onPressed: () async{
-                        print("Loggin' in");
-                        setState((){isLoading = true;});
-                        int response_code = await LogIn(_email_controller.text, _password_controller.text);
-                        if (response_code == 200)
-                        {
-                          setState((){isLoading = false;});
-                          if(selectedIngredientList.isEmpty) {
-                            Navigator.push(context, MaterialPageRoute(
-                                builder: (context) => UserIngredientList()));
-                          }
-                          else {
-                            Navigator.push(context,MaterialPageRoute(builder: (context) => BasicSearch()));
+
+
+                          setState((){isLoading = true;});
+                          int response_code = await LogIn(_email_controller.text, _password_controller.text);
+                          if (response_code == 200)
+                           {
+                            //await recipes();
+                            setState((){isLoading = false;});
+                            await existingIngredients();
+                            if(selectedIngredientList.isEmpty) {
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => UserIngredientList()));
+                            }
+                            else {
+                              setState(() {
+                                isRecipeListLoading = true;
+                              });
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => BasicSearch()));
+                            }
+                          } else if ( response_code == 401 ) {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Incorrect password';
+                              opacityAndLoading();
+                            });
+                          } else if ( response_code == 500 ) {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Email does not exist';
+                              opacityAndLoading();
+                            });
+                          } else {
+                            setState(() {
+                              print('Status code is: $response_code');
+                              statusText = 'Unknown error';
+                              opacityAndLoading();
+                            });
                           }
                         } else if ( response_code == 401 ) {
                           setState(() {

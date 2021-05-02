@@ -11,16 +11,17 @@ import 'package:quikquisine490/profile.dart';
 List<dynamic> recipeRatings = new List();
 int recentRating;
 String recentReview;
+Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
 
 Future getReviews(int id) async{
   recipeRatings.clear();
-  Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
+  //Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
   http.Response response = await http.get('https://quik-quisine.herokuapp.com/api/v1/recipes/'+id.toString()+'/ratings', headers: headers);
   var parsedJson = jsonDecode(response.body);
   var data = parsedJson['data'];
   recipeRatings = data;
   print('ratings data:');
-  print(recipeRatings);
+  print(data);
 }
 Future setReviews(int id, int rating, String review) async{
   var url = 'https://quik-quisine.herokuapp.com/api/v1/recipes/'+id.toString()+'/ratings';
@@ -33,7 +34,7 @@ Future setReviews(int id, int rating, String review) async{
   //var jsonbody = {};
  // jsonbody["user"] = body;
   String msg = json.encode(body);
-  Map<String,String> headers = {'X-User-Email': UserList[0], 'X-User-Token': UserList[2]};
+
   http.Response response = await http.post(url,headers: headers,body: msg);
   print("Review added code:: " + response.statusCode.toString());
 }
@@ -180,9 +181,9 @@ class recipedetails extends StatelessWidget {
   @override
   Widget build(BuildContext context,) {
     getReviews(id);
-    if(recentReview != null)
+    if(review == null)
       review = recentReview;
-    if(recentRating != null)
+    if(AverageRating == null)
       AverageRating = recentRating.toDouble();
     return MaterialApp(
       debugShowCheckedModeBanner: false,

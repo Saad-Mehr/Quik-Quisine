@@ -18,10 +18,10 @@ List<dynamic> filteredSortedTotal = [];
 List<dynamic> mealPlannerRecipes = [];
 String recipesPageTitle;
 
-
+Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
 Future<List> addToList(int id) async{
 
-  Map<String,String> headers = {'X-User-Email':UserList[0], 'X-User-Token': UserList[2], 'Content-Type': 'application/json; charset=UTF-8'};
+
   var url = 'https://quik-quisine.herokuapp.com/api/v1/users/users/'+UserList[3].toString()+'/meal_planner_baskets';
   var body = {};
   body["user_id"] =UserList[3].toString();

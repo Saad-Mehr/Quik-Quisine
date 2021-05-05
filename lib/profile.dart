@@ -8,7 +8,10 @@ import 'recipes.dart';
 import 'package:quikquisine490/user.dart';
 import 'HomePage.dart' as homepage;
 //thedatadb@gmail.com mealdbtester
-
+Map<String, String> get headers => {
+  "X-User-Email": UserList[0],
+  "X-User-Token": UserList[2],
+};
 class profile extends StatefulWidget {
   @override
   getUserInfoState createState() =>
